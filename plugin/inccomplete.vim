@@ -1,18 +1,32 @@
-" Name:        inccomplete
-" Author:      xaizek (xaizek@gmail.com)
-" Version:     1.0
+" Name:          inccomplete
+" Author:        xaizek (xaizek@gmail.com)
+" Version:       1.0
 "
-" Description: This is a completion plugin for C/C++/ObjC/ObjC++ preprocessors
-"              include directive.
+" Description:   This is a completion plugin for C/C++/ObjC/ObjC++ preprocessors
+"                include directive. It can be used along with clang_complete
+"                (http://www.vim.org/scripts/script.php?script_id=3302) plugin.
+"                And maybe with some others that I haven't tested.
 "
-" Configuring: g:inccomplete_findcmd - command to run GNU find program
-"              default: 'find'
-"              Note: On Windows you need to have Cygwin installed and to set
-"                    full path to find utility. For example, like this:
-"                    let g:inccomplete_findcmd = 'c:/cygwin/bin/find'
+"                It can complete both "" and <> forms of #include.
+"                For "" it gets all header files in the current directory (so
+"                it's assumed that you have something similar to
+"                autocmd BufEnter,BufWinEnter * lcd %:p:h
+"                in your .vimrc).
+"                And for <> it gets all files that have hpp or h extensions or
+"                don't have any.
 "
-" ToDo:        - Maybe in 'path' option should be replaced with some global
-"                variable like g:inccomplete_incpath?
+" Configuration: g:inccomplete_findcmd - command to run GNU find program
+"                default: 'find'
+"                Note: On Windows you need to have Cygwin installed and to set
+"                      full path to find utility. For example, like this:
+"                      let g:inccomplete_findcmd = 'c:/cygwin/bin/find'
+"                      Or it can be any find utility that accepts the following
+"                      parameters and multiple search paths:
+"                      -maxdepth 1 -type f
+"
+" ToDo:          - Maybe 'path' option should be replaced with some global
+"                  variable like g:inccomplete_incpath?
+"                - Is it possible to do file searching using only VimL?
 
 if exists("g:loaded_inccomplete")
     finish
@@ -26,7 +40,7 @@ endif
 
 autocmd FileType c,cpp,objc,objcpp call s:ICInit()
 
-" maps <, sets 'completefunc' and 'omnifunc'
+" maps < and ", sets 'completefunc'
 function! s:ICInit()
     inoremap <expr> <buffer> < ICCompleteInc('<')
     inoremap <expr> <buffer> " ICCompleteInc('"')
@@ -37,7 +51,7 @@ function! s:ICInit()
     setlocal omnifunc=ICComplete
 endfunction
 
-" backups current 'completefunc' and 'omnifunc'
+" backups current 'completefunc'
 function! s:ICBackupFuncs()
     let l:curbuf = fnamemodify(bufname('%'), ':p')
     " 'completefunc'
@@ -45,11 +59,6 @@ function! s:ICBackupFuncs()
         let s:oldcompletefuncs = {}
     endif
     let s:oldcompletefuncs[l:curbuf] = &completefunc
-    " 'omnifunc'
-    if !exists('s:oldomnifuncs')
-        let s:oldomnifuncs = {}
-    endif
-    let s:oldomnifuncs[l:curbuf] = &omnifunc
 endfunction
 
 " checks whether we need to do completion after < or " and starts it when we do
@@ -58,10 +67,10 @@ function! ICCompleteInc(char)
     if getline('.') !~ '^\s*#\s*include\s*'
         return a:char
     endif
-    return a:char."\<c-x>\<c-o>"
+    return a:char."\<c-x>\<c-u>"
 endfunction
 
-" this is the 'completefunc' and 'omnifunc' function
+" this is the 'completefunc'
 function! ICComplete(findstart, base)
     let l:curbuf = fnamemodify(bufname('%'), ':p')
     if a:findstart
