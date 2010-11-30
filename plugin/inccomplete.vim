@@ -27,6 +27,9 @@
 " ToDo:          - Maybe 'path' option should be replaced with some global
 "                  variable like g:inccomplete_incpath?
 "                - Is it possible to do file searching using only VimL?
+"                - Maybe '.' in path should be automatically replaced with the
+"                  path to current buffer instead of assuming that working
+"                  directory is correct?
 
 if exists("g:loaded_inccomplete")
     finish
