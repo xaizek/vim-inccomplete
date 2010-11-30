@@ -75,10 +75,10 @@ function! ICComplete(findstart, base)
     let l:curbuf = fnamemodify(bufname('%'), ':p')
     if a:findstart
         if getline('.') !~ '^\s*#\s*include\s*\%(<\|"\)'
-            if s:oldcompletefuncs[l:curbuf] == ''
+            let s:passnext = 1
+            if !has_key(s:oldcompletefuncs, l:curbuf)
                 return col('.') - 1
             endif
-            let s:passnext = 1
             return eval(s:oldcompletefuncs[l:curbuf]
                       \ ."(".a:findstart.",'".a:base."')")
         else
@@ -87,7 +87,7 @@ function! ICComplete(findstart, base)
         endif
     else
         if s:passnext == 1 " call previous 'completefunc' when needed
-            if s:oldcompletefuncs[l:curbuf] == ''
+            if !has_key(s:oldcompletefuncs, l:curbuf)
                 return []
             endif
             let l:retval = eval(s:oldcompletefuncs[l:curbuf]
@@ -134,15 +134,19 @@ function! s:ICGetList(user)
     else
         call filter(l:pathlst, 'v:val =~ "^\.$"')
     endif
-    let l:findcmd = shellescape(g:inccomplete_findcmd)
-    let l:found = system(l:findcmd.' '.join(l:pathlst, ' ')
-                       \ .' -maxdepth 1 -type f')
+    if a:user == 0
+        let l:iregex = ' -iregex '.shellescape('.*/[_a-z0-9]+\(\.hpp\|\.h\)?$')
+    else
+        let l:iregex = ' -iregex '.shellescape('.*\.\(hpp\|h\)$')
+    endif
+    let l:substcmd = 'substitute(shellescape(v:val), ''\(.*\)\\\"$'','.
+                               \ ' "\\1\"", "")'
+    let l:pathstr = join(map(copy(l:pathlst), l:substcmd), ' ')
+    let l:found = system(g:inccomplete_findcmd.' '
+                       \ .l:pathstr
+                       \ .' -maxdepth 1 -type f'.l:iregex)
     let l:foundlst = split(l:found, '\n')
     unlet l:found
-    if a:user != 0
-        " for ""-include filter all non-header files
-        call filter(l:foundlst, 'v:val =~ "\\\.\\%(hpp\\|h\\)$"')
-    endif
     let l:result = []
     for l:file in l:foundlst
         for l:incpath in l:pathlst " find appropriate incpath
@@ -151,9 +155,7 @@ function! s:ICGetList(user)
                 if l:left[0] == '/'
                     let l:left = l:left[1:]
                 endif
-                if l:left =~ '^[_a-zA-Z0-9]\+\%(\.h\|\.hpp\|\)$'
-                    call add(l:result, [l:incpath, l:left])
-                endif
+                call add(l:result, [l:incpath, l:left])
                 break
             endif
         endfor
