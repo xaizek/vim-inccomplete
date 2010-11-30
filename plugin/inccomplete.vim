@@ -131,28 +131,27 @@ function! s:ICGetList(user)
     let l:pathlst = reverse(sort(split(&path, ',')))
     if a:user == 0
         call filter(l:pathlst, 'v:val !~ "^\.$"')
-    else
-        call filter(l:pathlst, 'v:val =~ "^\.$"')
-    endif
-    if a:user == 0
         let l:iregex = ' -iregex '.shellescape('.*/[_a-z0-9]+\(\.hpp\|\.h\)?$')
     else
-        let l:iregex = ' -iregex '.shellescape('.*\.\(hpp\|h\)$')
+        call filter(l:pathlst, 'v:val =~ "^\.$"')
+        let l:iregex = ' -iregex '.shellescape('.*\(\.hpp\|\.h\)$')
     endif
-    let l:substcmd = 'substitute(shellescape(v:val), ''\(.*\)\\\"$'','.
-                               \ ' "\\1\"", "")'
+    " substitute in the next command is for Windows (it removes back slash in
+    " \" sequence, that can appear after escaping the path)
+    let l:substcmd = 'substitute(shellescape(v:val), ''\(.*\)\\\"$'','
+                              \ .' "\\1\"", "")'
     let l:pathstr = join(map(copy(l:pathlst), l:substcmd), ' ')
     let l:found = system(g:inccomplete_findcmd.' '
                        \ .l:pathstr
                        \ .' -maxdepth 1 -type f'.l:iregex)
     let l:foundlst = split(l:found, '\n')
-    unlet l:found
+    unlet l:found " to free some memory
     let l:result = []
     for l:file in l:foundlst
-        for l:incpath in l:pathlst " find appropriate incpath
+        for l:incpath in l:pathlst " find appropriate path
             if l:file =~ '^'.escape(l:incpath, '.\')
                 let l:left = l:file[len(l:incpath):]
-                if l:left[0] == '/'
+                if l:left[0] == '/' || l:left[0] == '\'
                     let l:left = l:left[1:]
                 endif
                 call add(l:result, [l:incpath, l:left])
