@@ -45,20 +45,15 @@ function! s:ICInit()
     inoremap <expr> <buffer> < ICCompleteInc('<')
     inoremap <expr> <buffer> " ICCompleteInc('"')
 
-    call s:ICBackupFuncs()
-
-    setlocal completefunc=ICComplete
-    setlocal omnifunc=ICComplete
-endfunction
-
-" backups current 'completefunc'
-function! s:ICBackupFuncs()
+    " save current 'completefunc'
     let l:curbuf = fnamemodify(bufname('%'), ':p')
-    " 'completefunc'
     if !exists('s:oldcompletefuncs')
         let s:oldcompletefuncs = {}
     endif
     let s:oldcompletefuncs[l:curbuf] = &completefunc
+
+    setlocal completefunc=ICComplete
+    setlocal omnifunc=ICComplete
 endfunction
 
 " checks whether we need to do completion after < or " and starts it when we do
