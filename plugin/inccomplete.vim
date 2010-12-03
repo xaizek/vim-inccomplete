@@ -1,6 +1,6 @@
 " Name:          inccomplete
 " Author:        xaizek (xaizek@gmail.com)
-" Version:       1.0
+" Version:       1.0.1
 "
 " Description:   This is a completion plugin for C/C++/ObjC/ObjC++ preprocessors
 "                include directive. It can be used along with clang_complete
@@ -115,10 +115,11 @@ function! s:ICGetCachedList(user)
     if a:user != 0
         return s:ICGetList(a:user)
     else
-        if !exists('b:cachedinclist')
-            let b:cachedinclist = s:ICGetList(a:user)
+        if !exists('b:ICcachedinclist') || b:ICcachedpath != &path
+            let b:ICcachedinclist = s:ICGetList(a:user)
+            let b:ICcachedpath = &path
         endif
-        return b:cachedinclist
+        return b:ICcachedinclist
     endif
 endfunction
 
