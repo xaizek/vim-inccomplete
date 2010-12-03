@@ -129,10 +129,10 @@ endfunction
 function! s:ICGetList(user)
     let l:pathlst = reverse(sort(split(&path, ',')))
     if a:user == 0
-        call filter(l:pathlst, 'v:val !~ "^\.$"')
+        call filter(l:pathlst, 'v:val != "" && v:val !~ "^\.$"')
         let l:iregex = ' -iregex '.shellescape('.*/[_a-z0-9]+\(\.hpp\|\.h\)?$')
     else
-        call filter(l:pathlst, 'v:val =~ "^\.$"')
+        call filter(l:pathlst, 'v:val != "" && v:val =~ "^\.$"')
         let l:iregex = ' -iregex '.shellescape('.*\(\.hpp\|\.h\)$')
     endif
     " substitute in the next command is for Windows (it removes back slash in
