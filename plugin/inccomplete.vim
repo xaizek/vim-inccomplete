@@ -1,6 +1,6 @@
 " Name:          inccomplete
 " Author:        xaizek (xaizek@gmail.com)
-" Version:       1.0.1
+" Version:       1.0.5
 "
 " Description:   This is a completion plugin for C/C++/ObjC/ObjC++ preprocessors
 "                include directive. It can be used along with clang_complete
@@ -43,29 +43,28 @@ endif
 
 autocmd FileType c,cpp,objc,objcpp call s:ICInit()
 
-" maps < and ", sets 'completefunc'
+" maps < and ", sets 'omnifunc'
 function! s:ICInit()
     inoremap <expr> <buffer> < ICCompleteInc('<')
     inoremap <expr> <buffer> " ICCompleteInc('"')
 
-    " save current 'completefunc'
+    " save current 'omnifunc'
     let l:curbuf = fnamemodify(bufname('%'), ':p')
-    if !exists('s:oldcompletefuncs')
-        let s:oldcompletefuncs = {}
+    if !exists('s:oldomnifuncs')
+        let s:oldomnifuncs = {}
     endif
-    let s:oldcompletefuncs[l:curbuf] = &completefunc
+    let s:oldomnifuncs[l:curbuf] = &omnifunc
 
-    setlocal completefunc=ICComplete
     setlocal omnifunc=ICComplete
 endfunction
 
 " checks whether we need to do completion after < or " and starts it when we do
 " a:char is '<' or '"'
 function! ICCompleteInc(char)
-    if getline('.') !~ '^\s*#\s*include\s*'
+    if getline('.') !~ '^\s*#\s*include\s*$'
         return a:char
     endif
-    return a:char."\<c-x>\<c-u>"
+    return a:char."\<c-x>\<c-o>"
 endfunction
 
 " this is the 'completefunc'
@@ -94,7 +93,7 @@ function! ICComplete(findstart, base)
         endif
         let l:comlst = []
         let l:pos = match(getline('.'), '<\|"')
-        let l:user = getline('.')[l:pos : l:pos + 1] == '"'
+        let l:user = getline('.')[l:pos : l:pos] == '"'
         let l:inclst = s:ICGetCachedList(l:user)
         for l:increc in l:inclst
             if l:increc[1] =~ '^'.a:base
