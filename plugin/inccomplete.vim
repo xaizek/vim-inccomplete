@@ -73,10 +73,10 @@ function! ICComplete(findstart, base)
     if a:findstart
         if getline('.') !~ '^\s*#\s*include\s*\%(<\|"\)'
             let s:passnext = 1
-            if !has_key(s:oldcompletefuncs, l:curbuf)
+            if !has_key(s:oldomnifuncs, l:curbuf)
                 return col('.') - 1
             endif
-            return eval(s:oldcompletefuncs[l:curbuf]
+            return eval(s:oldomnifuncs[l:curbuf]
                       \ ."(".a:findstart.",'".a:base."')")
         else
             let s:passnext = 0
@@ -84,10 +84,10 @@ function! ICComplete(findstart, base)
         endif
     else
         if s:passnext == 1 " call previous 'completefunc' when needed
-            if !has_key(s:oldcompletefuncs, l:curbuf)
+            if !has_key(s:oldomnifuncs, l:curbuf)
                 return []
             endif
-            let l:retval = eval(s:oldcompletefuncs[l:curbuf]
+            let l:retval = eval(s:oldomnifuncs[l:curbuf]
                              \ ."(".a:findstart.",'".a:base."')")
             return l:retval
         endif
