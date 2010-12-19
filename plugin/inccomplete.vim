@@ -1,6 +1,6 @@
 " Name:          inccomplete
 " Author:        xaizek (xaizek@gmail.com)
-" Version:       1.0.5
+" Version:       1.0.6
 "
 " Description:   This is a completion plugin for C/C++/ObjC/ObjC++ preprocessors
 "                include directive. It can be used along with clang_complete
@@ -144,15 +144,21 @@ function! s:ICGetList(user)
                        \ .' -maxdepth 1 -type f'.l:iregex)
     let l:foundlst = split(l:found, '\n')
     unlet l:found " to free some memory
+    " prepare l:pathlst by forming regexps
+    for l:i in range(len(l:pathlst))
+        let l:tmp = substitute(l:pathlst[i], '\', '/', 'g')
+        let l:pathlst[i] = [l:pathlst[i], '^'.escape(l:tmp, '.')]
+    endfor
     let l:result = []
     for l:file in l:foundlst
+        let l:file = substitute(l:file, '\', '/', 'g')
         for l:incpath in l:pathlst " find appropriate path
-            if l:file =~ '^'.escape(l:incpath, '.\')
-                let l:left = l:file[len(l:incpath):]
+            if l:file =~ l:incpath[1]
+                let l:left = l:file[len(l:incpath[0]):]
                 if l:left[0] == '/' || l:left[0] == '\'
                     let l:left = l:left[1:]
                 endif
-                call add(l:result, [l:incpath, l:left])
+                call add(l:result, [l:incpath[0], l:left])
                 break
             endif
         endfor
