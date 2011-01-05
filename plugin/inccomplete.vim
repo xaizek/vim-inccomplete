@@ -1,6 +1,6 @@
 " Name:          inccomplete
 " Author:        xaizek (xaizek@gmail.com)
-" Version:       1.0.6
+" Version:       1.1.7
 "
 " Description:   This is a completion plugin for C/C++/ObjC/ObjC++ preprocessors
 "                include directive. It can be used along with clang_complete
@@ -121,9 +121,13 @@ function! s:ICGetCachedList(user)
     if a:user != 0
         return s:ICGetList(a:user)
     else
-        if !exists('b:ICcachedinclist') || b:ICcachedpath != &path
+        let l:path = &path
+        if exists('b:clang_user_options')
+            let l:path .= b:clang_user_options
+        endif
+        if !exists('b:ICcachedinclist') || b:ICcachedpath != l:path
             let b:ICcachedinclist = s:ICGetList(a:user)
-            let b:ICcachedpath = &path
+            let b:ICcachedpath = l:path
         endif
         return b:ICcachedinclist
     endif
@@ -133,7 +137,8 @@ endfunction
 " a:user determines search area, when it's not zero look only in '.', otherwise
 " everywhere in path except '.'
 function! s:ICGetList(user)
-    let l:pathlst = reverse(sort(split(&path, ',')))
+    let l:pathlst = s:ICAddNoDups(split(&path, ','), s:ICGetClangIncludes())
+    let l:pathlst = reverse(sort(l:pathlst))
     if a:user == 0
         call filter(l:pathlst, 'v:val != "" && v:val !~ "^\.$"')
         let l:iregex = ' -iregex '.shellescape('.*/[_a-z0-9]+\(\.hpp\|\.h\)?$')
@@ -171,6 +176,29 @@ function! s:ICGetList(user)
         endfor
     endfor
     return sort(l:result)
+endfunction
+
+" retrieves include directories from b:clang_user_options and
+" g:clang_user_options
+function! s:ICGetClangIncludes()
+    if !exists('b:clang_user_options') || !exists('g:clang_user_options')
+        return []
+    endif
+    let l:lst = split(b:clang_user_options.' '.g:clang_user_options, ' ')
+    let l:lst = filter(l:lst, 'v:val !~ "\C^-I"')
+    let l:lst = map(l:lst, 'v:val[2:]')
+    return l:lst
+endfunction
+
+" adds one list to another without duplicating items
+function! s:ICAddNoDups(lista, listb)
+    let l:result = []
+    for l:item in a:lista + a:listb
+        if index(l:result, l:item) == -1
+            call add(l:result, l:item)
+        endif
+    endfor
+    return l:result
 endfunction
 
 " vim: set foldmethod=syntax foldlevel=0 :
