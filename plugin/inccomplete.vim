@@ -1,6 +1,6 @@
 " Name:          inccomplete
 " Author:        xaizek (xaizek@gmail.com)
-" Version:       1.1.7
+" Version:       1.1.8
 "
 " Description:   This is a completion plugin for C/C++/ObjC/ObjC++ preprocessors
 "                include directive. It can be used along with clang_complete
@@ -58,13 +58,18 @@ function! s:ICInit()
     setlocal omnifunc=ICComplete
 endfunction
 
-" checks whether we need to do completion after < or " and starts it when we do
+" checks whether we need to do completion after < or " and starts it when we do.
 " a:char is '<' or '"'
 function! ICCompleteInc(char)
     if getline('.') !~ '^\s*#\s*include\s*$'
         return a:char
     endif
-    return a:char."\<c-x>\<c-o>"
+    if a:char == '<'
+        let l:endchar = '>'
+    else
+        let l:endchar = '"'
+    endif
+    return a:char.l:endchar."\<left>\<c-x>\<c-o>"
 endfunction
 
 " this is the 'completefunc'
@@ -94,10 +99,6 @@ function! ICComplete(findstart, base)
         let l:comlst = []
         let l:pos = match(getline('.'), '<\|"')
         let l:bracket = getline('.')[l:pos : l:pos]
-        if l:bracket == '<'
-            let l:bracket = '>'
-        endif
-        let l:completebraket = len(getline('.')) == l:pos + 1
         let l:inclst = s:ICGetCachedList(l:bracket == '"')
         for l:increc in l:inclst
             if l:increc[1] =~ '^'.a:base
@@ -106,9 +107,6 @@ function! ICComplete(findstart, base)
                             \ 'menu': l:increc[0],
                             \ 'dup': 1,
                             \ }
-                if l:completebraket
-                    let l:item['word'] .= l:bracket
-                endif
                 call add(l:comlst, l:item)
             endif
         endfor
