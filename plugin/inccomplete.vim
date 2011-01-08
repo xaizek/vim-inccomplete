@@ -1,6 +1,6 @@
 " Name:          inccomplete
 " Author:        xaizek (xaizek@gmail.com)
-" Version:       1.1.8
+" Version:       1.2.9
 "
 " Description:   This is a completion plugin for C/C++/ObjC/ObjC++ preprocessors
 "                include directive. It can be used along with clang_complete
@@ -36,6 +36,7 @@ if exists("g:loaded_inccomplete")
 endif
 
 let g:loaded_inccomplete = 1
+let g:inccomplete_cache = {}
 
 if !exists('g:inccomplete_findcmd')
     let g:inccomplete_findcmd = 'find'
@@ -45,6 +46,7 @@ autocmd FileType c,cpp,objc,objcpp call s:ICInit()
 
 " maps < and ", sets 'omnifunc'
 function! s:ICInit()
+    " remap < and "
     inoremap <expr> <buffer> < ICCompleteInc('<')
     inoremap <expr> <buffer> " ICCompleteInc('"')
 
@@ -55,79 +57,66 @@ function! s:ICInit()
     endif
     let s:oldomnifuncs[l:curbuf] = &omnifunc
 
+    " set our omnifunc
     setlocal omnifunc=ICComplete
 endfunction
 
 " checks whether we need to do completion after < or " and starts it when we do.
-" a:char is '<' or '"'
-function! ICCompleteInc(char)
+" a:bracket is '<' or '"'
+function! ICCompleteInc(bracket)
+    " is it #include directive?
     if getline('.') !~ '^\s*#\s*include\s*$'
-        return a:char
+        return a:bracket
     endif
-    if a:char == '<'
-        let l:endchar = '>'
-    else
-        let l:endchar = '"'
-    endif
-    return a:char.l:endchar."\<left>\<c-x>\<c-o>"
+
+    " determine close bracket
+    let l:closebracket = ['"', '>'][a:bracket == '<']
+
+    " put brackets and start completion
+    return a:bracket.l:closebracket."\<left>\<c-x>\<c-o>"
 endfunction
 
-" this is the 'completefunc'
+" this is the 'omnifunc'
 function! ICComplete(findstart, base)
     let l:curbuf = fnamemodify(bufname('%'), ':p')
     if a:findstart
-        if getline('.') !~ '^\s*#\s*include\s*\%(<\|"\)'
-            let s:passnext = 1
-            if !has_key(s:oldomnifuncs, l:curbuf)
-                return col('.') - 1
-            endif
-            return eval(s:oldomnifuncs[l:curbuf]
-                      \ ."(".a:findstart.",'".a:base."')")
-        else
-            let s:passnext = 0
+        " did user request #include completion?
+        let s:passnext = getline('.') !~ '^\s*#\s*include\s*\%(<\|"\)'
+        if !s:passnext
             return match(getline('.'), '<\|"') + 1
         endif
-    else
-        if s:passnext == 1 " call previous 'completefunc' when needed
-            if !has_key(s:oldomnifuncs, l:curbuf)
-                return []
-            endif
-            let l:retval = eval(s:oldomnifuncs[l:curbuf]
-                             \ ."(".a:findstart.",'".a:base."')")
-            return l:retval
+
+        " no, call other omnifunc if there is one
+        if !has_key(s:oldomnifuncs, l:curbuf)
+            return col('.') - 1
         endif
-        let l:comlst = []
+        return eval(s:oldomnifuncs[l:curbuf].
+                  \ "(".a:findstart.",'".a:base."')")
+    elseif s:passnext
+        " call previous 'omnifunc' when needed
+        if !has_key(s:oldomnifuncs, l:curbuf)
+            return []
+        endif
+        return eval(s:oldomnifuncs[l:curbuf].
+                  \ "(".a:findstart.",'".a:base."')")
+    else
+        " get list of all candidates and reduce it to those starts with a:base
         let l:pos = match(getline('.'), '<\|"')
         let l:bracket = getline('.')[l:pos : l:pos]
-        let l:inclst = s:ICGetCachedList(l:bracket == '"')
+        let l:inclst = s:ICGetList(l:bracket == '"')
+        call filter(l:inclst, 'v:val[1] =~ "^".a:base')
+
+        " form list of dictionaries
+        let l:comlst = []
         for l:increc in l:inclst
-            if l:increc[1] =~ '^'.a:base
-                let l:item = {
-                            \ 'word': l:increc[1],
-                            \ 'menu': l:increc[0],
-                            \ 'dup': 1,
-                            \ }
-                call add(l:comlst, l:item)
-            endif
+            let l:item = {
+                        \ 'word': l:increc[1],
+                        \ 'menu': l:increc[0],
+                        \ 'dup': 1
+                        \}
+            call add(l:comlst, l:item)
         endfor
         return l:comlst
-    endif
-endfunction
-
-" handles cache for <>-includes
-function! s:ICGetCachedList(user)
-    if a:user != 0
-        return s:ICGetList(a:user)
-    else
-        let l:path = &path
-        if exists('b:clang_user_options')
-            let l:path .= b:clang_user_options
-        endif
-        if !exists('b:ICcachedinclist') || b:ICcachedpath != l:path
-            let b:ICcachedinclist = s:ICGetList(a:user)
-            let b:ICcachedpath = l:path
-        endif
-        return b:ICcachedinclist
     endif
 endfunction
 
@@ -135,45 +124,80 @@ endfunction
 " a:user determines search area, when it's not zero look only in '.', otherwise
 " everywhere in path except '.'
 function! s:ICGetList(user)
+    if a:user
+        return s:ICFindIncludes(1, ['.'])
+    endif
+
+    " prepare list of directories
     let l:pathlst = s:ICAddNoDups(split(&path, ','), s:ICGetClangIncludes())
-    let l:pathlst = reverse(sort(l:pathlst))
+    call filter(l:pathlst, 'v:val != "" && v:val !~ "^\.$"')
+    call map(l:pathlst, 'fnamemodify(v:val, ":p")')
+    call reverse(sort(l:pathlst))
+
+    " divide it into to sublists
+    let l:noncached = filter(copy(l:pathlst),
+                           \ '!has_key(g:inccomplete_cache, v:val)')
+    let l:cached = filter(l:pathlst, 'has_key(g:inccomplete_cache, v:val)')
+
+    " add noncached entries
+    let l:result = s:ICFindIncludes(0, l:noncached)
+
+    " add cached entries
+    for l:incpath in l:cached
+        call map(copy(g:inccomplete_cache[l:incpath]),
+               \ 'add(l:result, [l:incpath, v:val])')
+    endfor
+
+    return sort(l:result)
+endfunction
+
+" gets list of header files using find
+function! s:ICFindIncludes(user, pathlst)
+    " test arguments
+    if len(a:pathlst) == 0
+        return []
+    endif
     if a:user == 0
-        call filter(l:pathlst, 'v:val != "" && v:val !~ "^\.$"')
         let l:iregex = ' -iregex '.shellescape('.*/[_a-z0-9]+\(\.hpp\|\.h\)?$')
     else
-        call filter(l:pathlst, 'v:val != "" && v:val =~ "^\.$"')
         let l:iregex = ' -iregex '.shellescape('.*\(\.hpp\|\.h\)$')
     endif
-    " substitute in the next command is for Windows (it removes back slash in
+
+    " substitute in the next command is for Windows (it removes backslash in
     " \" sequence, that can appear after escaping the path)
-    let l:substcmd = 'substitute(shellescape(v:val), ''\(.*\)\\\"$'','
-                              \ .' "\\1\"", "")'
-    let l:pathstr = join(map(copy(l:pathlst), l:substcmd), ' ')
-    let l:found = system(g:inccomplete_findcmd.' '
-                       \ .l:pathstr
-                       \ .' -maxdepth 1 -type f'.l:iregex)
+    let l:substcmd = 'substitute(shellescape(v:val), ''\(.*\)\\\"$'','.
+                   \ ' "\\1\"", "")'
+    let l:pathstr = join(map(copy(a:pathlst), l:substcmd), ' ')
+
+    " execute find
+    let l:found = system(g:inccomplete_findcmd.' '.
+                       \ l:pathstr.' -maxdepth 1 -type f'.l:iregex)
     let l:foundlst = split(l:found, '\n')
     unlet l:found " to free some memory
-    " prepare l:pathlst by forming regexps
-    for l:i in range(len(l:pathlst))
-        let l:tmp = substitute(l:pathlst[i], '\', '/', 'g')
-        let l:pathlst[i] = [l:pathlst[i], '^'.escape(l:tmp, '.')]
+
+    " prepare a:pathlst by forming regexps
+    for l:i in range(len(a:pathlst))
+        let g:inccomplete_cache[a:pathlst[i]] = []
+        let l:tmp = substitute(a:pathlst[i], '\', '/', 'g')
+        let a:pathlst[i] = [a:pathlst[i], '^'.escape(l:tmp, '.')]
     endfor
+
+    " process the results of find
     let l:result = []
     for l:file in l:foundlst
         let l:file = substitute(l:file, '\', '/', 'g')
-        for l:incpath in l:pathlst " find appropriate path
-            if l:file =~ l:incpath[1]
-                let l:left = l:file[len(l:incpath[0]):]
-                if l:left[0] == '/' || l:left[0] == '\'
-                    let l:left = l:left[1:]
-                endif
-                call add(l:result, [l:incpath[0], l:left])
-                break
-            endif
-        endfor
+        " find appropriate path (it should exist)
+        let l:incpath = filter(copy(a:pathlst), 'l:file =~ v:val[1]')[0]
+        " add entry to list
+        let l:left = l:file[len(l:incpath[0]):]
+        if l:left[0] == '/' || l:left[0] == '\'
+            let l:left = l:left[1:]
+        endif
+        call add(l:result, [l:incpath[0], l:left])
+        " and to cache
+        call add(g:inccomplete_cache[l:incpath[0]], l:left)
     endfor
-    return sort(l:result)
+    return l:result
 endfunction
 
 " retrieves include directories from b:clang_user_options and
@@ -183,7 +207,7 @@ function! s:ICGetClangIncludes()
         return []
     endif
     let l:lst = split(b:clang_user_options.' '.g:clang_user_options, ' ')
-    let l:lst = filter(l:lst, 'v:val !~ "\C^-I"')
+    let l:lst = filter(l:lst, 'v:val =~ "\\C^-I"')
     let l:lst = map(l:lst, 'v:val[2:]')
     return l:lst
 endfunction
