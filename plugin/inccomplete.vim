@@ -16,7 +16,7 @@
 "                don't have any.
 "
 "                Only files of include directories are displayed in completion
-"                list, but you can complete file of subdirectories of include
+"                list, but you can complete files in subdirectories of include
 "                directories too. All you need is to call completion again after
 "                typing subdirectory name and slash (and maybe beginning of
 "                file name).
