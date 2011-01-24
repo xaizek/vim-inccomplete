@@ -1,6 +1,6 @@
 " Name:          inccomplete
 " Author:        xaizek (xaizek@gmail.com)
-" Version:       1.2.9
+" Version:       1.3.10
 "
 " Description:   This is a completion plugin for C/C++/ObjC/ObjC++ preprocessors
 "                include directive. It can be used along with clang_complete
@@ -14,6 +14,12 @@
 "                in your .vimrc).
 "                And for <> it gets all files that have hpp or h extensions or
 "                don't have any.
+"
+"                Only files of include directories are displayed in completion
+"                list, but you can complete file of subdirectories of include
+"                directories too. All you need is to call completion again after
+"                typing subdirectory name and slash (and maybe beginning of
+"                file name).
 "
 " Configuration: g:inccomplete_findcmd - command to run GNU find program
 "                default: 'find'
@@ -103,8 +109,8 @@ function! ICComplete(findstart, base)
         " get list of all candidates and reduce it to those starts with a:base
         let l:pos = match(getline('.'), '<\|"')
         let l:bracket = getline('.')[l:pos : l:pos]
-        let l:inclst = s:ICGetList(l:bracket == '"')
-        call filter(l:inclst, 'v:val[1] =~ "^".a:base')
+        let l:inclst = s:ICGetList(l:bracket == '"', a:base)
+        let l:inclst = s:ICFilterIncLst(l:inclst, a:base)
 
         " form list of dictionaries
         let l:comlst = []
@@ -120,16 +126,55 @@ function! ICComplete(findstart, base)
     endif
 endfunction
 
+" filters search results
+function! s:ICFilterIncLst(inclst, base)
+    " determine type of slash
+    let l:base = a:base
+    let l:pos = strridx(a:base, '/')
+    let l:sl1 = '/'
+    let l:sl2 = '/'
+    if l:pos < 0
+        let l:pos = strridx(a:base, '\')
+        let l:sl1 = '\\\\'
+        let l:sl2 = '\'
+    endif
+
+    " filter by filename
+    let l:filebegin = a:base[strridx(a:base, l:sl2) + 1:]
+    let l:inclst = filter(copy(a:inclst), 'v:val[1] =~ "^".l:filebegin')
+
+    " correct slashes in paths
+    if l:sl1 == '/'
+        call map(l:inclst, '[substitute(v:val[0], "\\\\", "/", "g"), v:val[1]]')
+    else
+        call map(l:inclst, '[substitute(v:val[0], "/", "\\\\", "g"), v:val[1]]')
+    endif
+
+    if l:pos >= 0
+        " filter by subdirectory name
+        let l:dirend1 = a:base[:l:pos]
+        let l:dirend2 = escape(l:dirend1, '\')
+        call filter(l:inclst, 'v:val[0] =~ "'.l:sl1.'".l:dirend2."$"')
+
+        " move end of each path to the beginning of filename
+        let l:cutidx = - (l:pos + 2)
+        call map(l:inclst, '[v:val[0][:l:cutidx], l:dirend1.v:val[1]]')
+    endif
+
+    return l:inclst
+endfunction
+
 " searches for files that can be included in path
 " a:user determines search area, when it's not zero look only in '.', otherwise
 " everywhere in path except '.'
-function! s:ICGetList(user)
+function! s:ICGetList(user, base)
     if a:user
-        return s:ICFindIncludes(1, ['.'])
+        return s:ICFindIncludes(1, ['.'] + s:ICGetSubDirs(['.'], a:base))
     endif
 
     " prepare list of directories
     let l:pathlst = s:ICAddNoDups(split(&path, ','), s:ICGetClangIncludes())
+    let l:pathlst = s:ICAddNoDups(l:pathlst, s:ICGetSubDirs(l:pathlst, a:base))
     call filter(l:pathlst, 'v:val != "" && v:val !~ "^\.$"')
     call map(l:pathlst, 'fnamemodify(v:val, ":p")')
     call reverse(sort(l:pathlst))
@@ -158,7 +203,7 @@ function! s:ICFindIncludes(user, pathlst)
         return []
     endif
     if a:user == 0
-        let l:iregex = ' -iregex '.shellescape('.*/[_a-z0-9]+\(\.hpp\|\.h\)?$')
+        let l:iregex = ' -iregex '.shellescape('.*/[-_a-z0-9]+\(\.hpp\|\.h\)?$')
     else
         let l:iregex = ' -iregex '.shellescape('.*\(\.hpp\|\.h\)$')
     endif
@@ -186,8 +231,12 @@ function! s:ICFindIncludes(user, pathlst)
     let l:result = []
     for l:file in l:foundlst
         let l:file = substitute(l:file, '\', '/', 'g')
-        " find appropriate path (it should exist)
-        let l:incpath = filter(copy(a:pathlst), 'l:file =~ v:val[1]')[0]
+        " find appropriate path
+        let l:pathlst = filter(copy(a:pathlst), 'l:file =~ v:val[1]')
+        if len(l:pathlst) == 0
+            continue
+        endif
+        let l:incpath = l:pathlst[0]
         " add entry to list
         let l:left = l:file[len(l:incpath[0]):]
         if l:left[0] == '/' || l:left[0] == '\'
@@ -210,6 +259,34 @@ function! s:ICGetClangIncludes()
     let l:lst = filter(l:lst, 'v:val =~ "\\C^-I"')
     let l:lst = map(l:lst, 'v:val[2:]')
     return l:lst
+endfunction
+
+" searches for existing subdirectories
+function! s:ICGetSubDirs(pathlst, base)
+    " determine type of slash
+    let l:pos = strridx(a:base, '/')
+    let l:sl = '/'
+    if l:pos < 0
+        let l:pos = strridx(a:base, '\')
+        let l:sl = '\\\\'
+    endif
+    if l:pos < 0
+        return []
+    endif
+
+    " search
+    let l:dirend = a:base[:l:pos]
+    let l:pathlst = join(a:pathlst, ',')
+    let l:subdirs = finddir(l:dirend, l:pathlst, -1)
+
+    " path expanding
+    call map(l:subdirs, 'fnamemodify(v:val, ":p:h")')
+
+    " ensure that path ends with slash
+    let l:mapcmd = 'substitute(v:val, "\\([^'.l:sl.']\\)$", "\\1'.l:sl.'", "g")'
+    call map(l:subdirs, l:mapcmd)
+
+    return l:subdirs
 endfunction
 
 " adds one list to another without duplicating items
