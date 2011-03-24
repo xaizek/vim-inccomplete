@@ -1,6 +1,6 @@
 " Name:          inccomplete
 " Author:        xaizek (xaizek@gmail.com)
-" Version:       1.3.10
+" Version:       1.3.11
 "
 " Description:   This is a completion plugin for C/C++/ObjC/ObjC++ preprocessors
 "                include directive. It can be used along with clang_complete
@@ -98,7 +98,7 @@ function! ICComplete(findstart, base)
         endif
         return eval(s:oldomnifuncs[l:curbuf].
                   \ "(".a:findstart.",'".a:base."')")
-    elseif s:passnext
+    elseif exists('s:passnext') && s:passnext
         " call previous 'omnifunc' when needed
         if !has_key(s:oldomnifuncs, l:curbuf)
             return []
@@ -128,12 +128,15 @@ endfunction
 
 " filters search results
 function! s:ICFilterIncLst(inclst, base)
+    let l:iswindows = has('win16') || has('win32') || has('win64') ||
+                \ has('win95') || has('win32unix')
+
     " determine type of slash
     let l:base = a:base
     let l:pos = strridx(a:base, '/')
     let l:sl1 = '/'
     let l:sl2 = '/'
-    if l:pos < 0
+    if (len(a:base) == 0 && l:iswindows) || (len(a:base) != 0 && l:pos < 0)
         let l:pos = strridx(a:base, '\')
         let l:sl1 = '\\\\'
         let l:sl2 = '\'
