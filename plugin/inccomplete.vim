@@ -1,6 +1,6 @@
 " Name:          inccomplete
 " Author:        xaizek (xaizek@gmail.com)
-" Version:       1.3.11
+" Version:       1.3.12
 "
 " Description:   This is a completion plugin for C/C++/ObjC/ObjC++ preprocessors
 "                include directive. It can be used along with clang_complete
@@ -218,7 +218,7 @@ function! s:ICFindIncludes(user, pathlst)
     let l:pathstr = join(map(copy(a:pathlst), l:substcmd), ' ')
 
     " execute find
-    let l:found = system(g:inccomplete_findcmd.' '.
+    let l:found = system(g:inccomplete_findcmd.' -L '.
                        \ l:pathstr.' -maxdepth 1 -type f'.l:iregex)
     let l:foundlst = split(l:found, '\n')
     unlet l:found " to free some memory
