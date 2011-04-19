@@ -1,6 +1,6 @@
 " Name:          inccomplete
 " Author:        xaizek (xaizek@gmail.com)
-" Version:       1.3.12
+" Version:       1.3.13
 "
 " Description:   This is a completion plugin for C/C++/ObjC/ObjC++ preprocessors
 "                include directive. It can be used along with clang_complete
@@ -30,6 +30,12 @@
 "                      parameters and multiple search paths:
 "                      -maxdepth 1 -type f
 "
+"                g:inccomplete_addclosebracket - how to add close bracket
+"                default: 'always'
+"                When this option equals 'always' close bracket will be added
+"                right after open bracket was pressed. Otherwise it will be
+"                added after completion is over.
+"
 " ToDo:          - Maybe 'path' option should be replaced with some global
 "                  variable like g:inccomplete_incpath?
 "                - Is it possible to do file searching using only VimL?
@@ -46,6 +52,10 @@ let g:inccomplete_cache = {}
 
 if !exists('g:inccomplete_findcmd')
     let g:inccomplete_findcmd = 'find'
+endif
+
+if !exists('g:inccomplete_addclosebracket')
+    let g:inccomplete_addclosebracket = 'always'
 endif
 
 autocmd FileType c,cpp,objc,objcpp call s:ICInit()
@@ -75,11 +85,16 @@ function! ICCompleteInc(bracket)
         return a:bracket
     endif
 
-    " determine close bracket
-    let l:closebracket = ['"', '>'][a:bracket == '<']
+    if g:inccomplete_addclosebracket == 'always'
+        " determine close bracket
+        let l:closebracket = ['"', '>'][a:bracket == '<']
 
-    " put brackets and start completion
-    return a:bracket.l:closebracket."\<left>\<c-x>\<c-o>"
+        " put brackets and start completion
+        return a:bracket.l:closebracket."\<left>\<c-x>\<c-o>"
+    else
+        " put bracket and start completion
+        return a:bracket."\<c-x>\<c-o>"
+    endif
 endfunction
 
 " this is the 'omnifunc'
@@ -112,11 +127,22 @@ function! ICComplete(findstart, base)
         let l:inclst = s:ICGetList(l:bracket == '"', a:base)
         let l:inclst = s:ICFilterIncLst(l:inclst, a:base)
 
+        if g:inccomplete_addclosebracket != 'always'
+            " determine close bracket
+            let l:closebracket = ['"', '>'][l:bracket == '<']
+            if getline('.') =~ l:closebracket.'\s*$'
+                let l:closebracket = ''
+            endif
+        else
+            let l:closebracket = ''
+        endif
+
         " form list of dictionaries
         let l:comlst = []
         for l:increc in l:inclst
             let l:item = {
-                        \ 'word': l:increc[1],
+                        \ 'word': l:increc[1].l:closebracket,
+                        \ 'abbr': l:increc[1],
                         \ 'menu': l:increc[0],
                         \ 'dup': 1
                         \}
