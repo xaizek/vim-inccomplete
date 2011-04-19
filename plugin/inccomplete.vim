@@ -130,7 +130,7 @@ function! ICComplete(findstart, base)
         if g:inccomplete_addclosebracket != 'always'
             " determine close bracket
             let l:closebracket = ['"', '>'][l:bracket == '<']
-            if getline('.') =~ l:closebracket.'\s*$'
+            if getline('.')[l:pos + 1 :] =~ l:closebracket.'\s*$'
                 let l:closebracket = ''
             endif
         else
