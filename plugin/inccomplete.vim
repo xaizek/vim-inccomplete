@@ -1,6 +1,6 @@
 " Name:          inccomplete
 " Author:        xaizek (xaizek@gmail.com)
-" Version:       1.3.15
+" Version:       1.3.16
 "
 " Description:   This is a completion plugin for C/C++/ObjC/ObjC++ preprocessors
 "                include directive. It can be used along with clang_complete
@@ -125,7 +125,7 @@ function! ICComplete(findstart, base)
         let l:pos = match(getline('.'), '<\|"')
         let l:bracket = getline('.')[l:pos : l:pos]
         let l:inclst = s:ICGetList(l:bracket == '"', a:base)
-        let l:inclst = s:ICFilterIncLst(l:inclst, a:base)
+        let l:inclst = s:ICFilterIncLst(l:bracket == '"', l:inclst, a:base)
 
         if g:inccomplete_addclosebracket != 'always'
             " determine close bracket
@@ -153,7 +153,7 @@ function! ICComplete(findstart, base)
 endfunction
 
 " filters search results
-function! s:ICFilterIncLst(inclst, base)
+function! s:ICFilterIncLst(user, inclst, base)
     let l:iswindows = has('win16') || has('win32') || has('win64') ||
                 \ has('win95') || has('win32unix')
 
@@ -182,9 +182,17 @@ function! s:ICFilterIncLst(inclst, base)
     if l:pos >= 0
         " filter by subdirectory name
         let l:dirend0 = a:base[:l:pos]
-        let l:dirend1 = fnamemodify(l:dirend0, ':p')
+        if a:user
+            let l:dirend1 = fnamemodify(l:dirend0, ':p')
+        else
+            let l:dirend1 = l:dirend0
+        endif
         let l:dirend2 = escape(l:dirend1, '\')
-        call filter(l:inclst, 'v:val[0] =~ "^".l:dirend2')
+        if a:user
+            call filter(l:inclst, 'v:val[0] =~ "^".l:dirend2')
+        else
+            call filter(l:inclst, 'v:val[0] =~ "'.l:sl1.'".l:dirend2."$"')
+        endif
 
         " move end of each path to the beginning of filename
         let l:cutidx = - (l:pos + 2)
