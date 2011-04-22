@@ -1,6 +1,6 @@
 " Name:          inccomplete
 " Author:        xaizek (xaizek@gmail.com)
-" Version:       1.3.17
+" Version:       1.3.18
 "
 " Description:   This is a completion plugin for C/C++/ObjC/ObjC++ preprocessors
 "                include directive. It can be used along with clang_complete
@@ -36,6 +36,11 @@
 "                right after open bracket was pressed. Otherwise it will be
 "                added after completion is over.
 "
+"                g:inccomplete_sort - how to sort completion list
+"                default: ''
+"                When this option equals 'ignorecase' the case of letters of
+"                filenames will be ignored.
+"
 " ToDo:          - Maybe 'path' option should be replaced with some global
 "                  variable like g:inccomplete_incpath?
 "                - Is it possible to do file searching using only VimL?
@@ -56,6 +61,10 @@ endif
 
 if !exists('g:inccomplete_addclosebracket')
     let g:inccomplete_addclosebracket = 'always'
+endif
+
+if !exists('g:inccomplete_sort')
+    let g:inccomplete_sort = ''
 endif
 
 autocmd FileType c,cpp,objc,objcpp call s:ICInit()
@@ -153,8 +162,19 @@ function! ICComplete(findstart, base)
     endif
 endfunction
 
-" comparer for sorting completion list
+" comparers for sorting completion list
 function s:ListComparer(i1, i2)
+    if g:inccomplete_sort == 'ignorecase'
+        return s:IgnoreCaseComparer(a:i1, a:i2)
+    else
+        return s:Comparer(a:i1, a:i2)
+    endif
+endfunction
+function s:IgnoreCaseComparer(i1, i2)
+    return a:i1['abbr'] == a:i2['abbr'] ? 0 :
+                \ (a:i1['abbr'] > a:i2['abbr'] ? 1 : -1)
+endfunction
+function s:Comparer(i1, i2)
     return a:i1['abbr'] ==# a:i2['abbr'] ? 0 :
                 \ (a:i1['abbr'] ># a:i2['abbr'] ? 1 : -1)
 endfunction
