@@ -1,6 +1,6 @@
 " Name:          inccomplete
 " Author:        xaizek (xaizek@gmail.com)
-" Version:       1.3.13
+" Version:       1.3.14
 "
 " Description:   This is a completion plugin for C/C++/ObjC/ObjC++ preprocessors
 "                include directive. It can be used along with clang_complete
@@ -182,8 +182,15 @@ function! s:ICFilterIncLst(inclst, base)
     if l:pos >= 0
         " filter by subdirectory name
         let l:dirend1 = a:base[:l:pos]
+        let l:tmp = matchstr(l:dirend1, '\(../\)\+$')
+        let l:dirend1 = substitute(l:dirend1, '\(../\)\+$', '', '')
         let l:dirend2 = escape(l:dirend1, '\')
         call filter(l:inclst, 'v:val[0] =~ "'.l:sl1.'".l:dirend2."$"')
+
+        if l:tmp != ""
+            " add preceding ../
+            call map(l:inclst, '[v:val[0], l:tmp.v:val[1]]')
+        endif
 
         " move end of each path to the beginning of filename
         let l:cutidx = - (l:pos + 2)
