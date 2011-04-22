@@ -1,6 +1,6 @@
 " Name:          inccomplete
 " Author:        xaizek (xaizek@gmail.com)
-" Version:       1.3.16
+" Version:       1.3.17
 "
 " Description:   This is a completion plugin for C/C++/ObjC/ObjC++ preprocessors
 "                include directive. It can be used along with clang_complete
@@ -148,8 +148,15 @@ function! ICComplete(findstart, base)
                         \}
             call add(l:comlst, l:item)
         endfor
-        return l:comlst
+
+        return sort(l:comlst, 's:ListComparer')
     endif
+endfunction
+
+" comparer for sorting completion list
+function s:ListComparer(i1, i2)
+    return a:i1['abbr'] ==# a:i2['abbr'] ? 0 :
+                \ (a:i1['abbr'] ># a:i2['abbr'] ? 1 : -1)
 endfunction
 
 " filters search results
@@ -231,7 +238,7 @@ function! s:ICGetList(user, base)
                \ 'add(l:result, [l:incpath, v:val])')
     endfor
 
-    return sort(l:result)
+    return l:result
 endfunction
 
 " gets list of header files using find
