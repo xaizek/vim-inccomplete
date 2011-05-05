@@ -1,6 +1,6 @@
 " Name:          inccomplete
 " Author:        xaizek (xaizek@gmail.com)
-" Version:       1.3.18
+" Version:       1.3.19
 "
 " Description:   This is a completion plugin for C/C++/ObjC/ObjC++ preprocessors
 "                include directive. It can be used along with clang_complete
@@ -189,7 +189,7 @@ function! s:ICFilterIncLst(user, inclst, base)
     let l:pos = strridx(a:base, '/')
     let l:sl1 = '/'
     let l:sl2 = '/'
-    if (len(a:base) == 0 && l:iswindows) || (len(a:base) != 0 && l:pos < 0)
+    if l:iswindows && (len(a:base) == 0 || (len(a:base) != 0 && l:pos < 0))
         let l:pos = strridx(a:base, '\')
         let l:sl1 = '\\\\'
         let l:sl2 = '\'
