@@ -1,6 +1,6 @@
 " Name:          inccomplete
 " Author:        xaizek (xaizek@gmail.com)
-" Version:       1.3.19
+" Version:       1.3.20
 "
 " Description:   This is a completion plugin for C/C++/ObjC/ObjC++ preprocessors
 "                include directive. It can be used along with clang_complete
@@ -158,16 +158,16 @@ function! ICComplete(findstart, base)
             call add(l:comlst, l:item)
         endfor
 
-        return sort(l:comlst, 's:ListComparer')
+        return s:SortList(l:comlst)
     endif
 endfunction
 
-" comparers for sorting completion list
-function s:ListComparer(i1, i2)
+" sorts completion list
+function s:SortList(lst)
     if g:inccomplete_sort == 'ignorecase'
-        return s:IgnoreCaseComparer(a:i1, a:i2)
+        return sort(a:lst, 's:IgnoreCaseComparer')
     else
-        return s:Comparer(a:i1, a:i2)
+        return sort(a:lst, 's:Comparer')
     endif
 endfunction
 function s:IgnoreCaseComparer(i1, i2)
