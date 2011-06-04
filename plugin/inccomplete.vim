@@ -21,6 +21,16 @@
 "                typing subdirectory name and slash (and maybe beginning of
 "                file name).
 "
+"                Source for "" completion is current directory (so you should
+"                have 'autochdir' option on or use lcd with autocommand).
+"
+"                Sources for <> completion are:
+"                - 'path' option (on *nix it's set to '/usr/include' by default,
+"                  but on Windows you should set it to the right directories
+"                  manually)
+"                - g:clang_user_options ('-I' keys)
+"                - b:clang_user_options ('-I' keys)
+"
 " Configuration: g:inccomplete_findcmd - command to run GNU find program
 "                default: 'find'
 "                Note: On Windows you need to have Cygwin installed and to set
@@ -31,13 +41,13 @@
 "                      -maxdepth 1 -type f
 "
 "                g:inccomplete_addclosebracket - how to add close bracket
-"                default: 'always'
+"                Default: 'always'
 "                When this option equals 'always' close bracket will be added
 "                right after open bracket was pressed. Otherwise it will be
 "                added after completion is over.
 "
 "                g:inccomplete_sort - how to sort completion list
-"                default: ''
+"                Default: ''
 "                When this option equals 'ignorecase' the case of letters of
 "                filenames will be ignored.
 "
