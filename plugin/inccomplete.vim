@@ -1,6 +1,6 @@
 " Name:    inccomplete
 " Author:  xaizek (xaizek@gmail.com)
-" Version: 1.3.20
+" Version: 1.3.21
 " License: Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -171,7 +171,11 @@ function! s:ICFilterIncLst(user, inclst, base)
         else
             let l:dirend1 = l:dirend0
         endif
-        let l:dirend2 = escape(l:dirend1, '\')
+        if l:sl1 == '/'
+            let l:dirend2 = substitute(l:dirend1, "\\\\", "/", "g")
+        else
+            let l:dirend2 = escape(l:dirend1, '\')
+        endif
         if a:user
             call filter(l:inclst, 'v:val[0] =~ "^".l:dirend2')
         else
@@ -201,7 +205,7 @@ function! s:ICGetList(user, base)
     call map(l:pathlst, 'fnamemodify(v:val, ":p")')
     call reverse(sort(l:pathlst))
 
-    " divide it into to sublists
+    " divide it into sublists
     let l:noncached = filter(copy(l:pathlst),
                            \ '!has_key(g:inccomplete_cache, v:val)')
     let l:cached = filter(l:pathlst, 'has_key(g:inccomplete_cache, v:val)')
