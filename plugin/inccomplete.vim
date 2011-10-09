@@ -1,11 +1,11 @@
 " Name:    inccomplete
-" Author:  xaizek (xaizek@gmail.com)
-" Version: 1.3.21
+" Author:  xaizek <xaizek@gmail.com>
+" Version: 1.4.21
 " License: Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
 
-if exists("g:loaded_inccomplete")
+if exists('g:loaded_inccomplete')
     finish
 endif
 
@@ -24,13 +24,21 @@ if !exists('g:inccomplete_sort')
     let g:inccomplete_sort = ''
 endif
 
+if !exists('g:inccomplete_showdirs')
+    let g:inccomplete_showdirs = 0
+endif
+
 autocmd FileType c,cpp,objc,objcpp call s:ICInit()
 
-" maps < and ", sets 'omnifunc'
+" maps <, ", / and \, sets 'omnifunc'
 function! s:ICInit()
     " remap < and "
     inoremap <expr> <buffer> < ICCompleteInc('<')
     inoremap <expr> <buffer> " ICCompleteInc('"')
+    if g:inccomplete_showdirs
+        inoremap <expr> <buffer> / ICCompleteInc('/')
+        inoremap <expr> <buffer> \ ICCompleteInc('\')
+    endif
 
     " save current 'omnifunc'
     let l:curbuf = fnamemodify(bufname('%'), ':p')
@@ -43,9 +51,15 @@ function! s:ICInit()
     setlocal omnifunc=ICComplete
 endfunction
 
-" checks whether we need to do completion after < or " and starts it when we do.
-" a:bracket is '<' or '"'
+" checks whether we need to do completion after <, ", / or \ and starts it when
+" we do.
 function! ICCompleteInc(bracket)
+    if a:bracket == '/' || a:bracket == '\'
+        if getline('.') =~ '^\s*#\s*include\s*["<].*$'
+            return a:bracket."\<c-x>\<c-o>"
+        endif
+    endif
+
     " is it #include directive?
     if getline('.') !~ '^\s*#\s*include\s*$'
         return a:bracket
@@ -106,8 +120,13 @@ function! ICComplete(findstart, base)
         " form list of dictionaries
         let l:comlst = []
         for l:increc in l:inclst
+            if empty(l:increc[1])
+                continue
+            endif
+
+            let l:bracket = isdirectory(l:increc[1]) ? '' : l:closebracket
             let l:item = {
-                        \ 'word': l:increc[1].l:closebracket,
+                        \ 'word': l:increc[1].l:bracket,
                         \ 'abbr': l:increc[1],
                         \ 'menu': l:increc[0],
                         \ 'dup': 1
@@ -146,7 +165,7 @@ function! s:ICFilterIncLst(user, inclst, base)
     let l:pos = strridx(a:base, '/')
     let l:sl1 = '/'
     let l:sl2 = '/'
-    if l:iswindows && (len(a:base) == 0 || (len(a:base) != 0 && l:pos < 0))
+    if l:iswindows && (empty(a:base) || l:pos < 0)
         let l:pos = strridx(a:base, '\')
         let l:sl1 = '\\\\'
         let l:sl2 = '\'
@@ -225,7 +244,7 @@ endfunction
 " gets list of header files using find
 function! s:ICFindIncludes(user, pathlst)
     " test arguments
-    if len(a:pathlst) == 0
+    if empty(a:pathlst)
         return []
     endif
     if a:user == 0
@@ -240,9 +259,11 @@ function! s:ICFindIncludes(user, pathlst)
                    \ ' "\\1\"", "")'
     let l:pathstr = join(map(copy(a:pathlst), l:substcmd), ' ')
 
+    let l:dirs = g:inccomplete_showdirs ? ' -or -type d' : ''
+
     " execute find
     let l:found = system(g:inccomplete_findcmd.' -L '.
-                       \ l:pathstr.' -maxdepth 1 -type f'.l:iregex)
+                       \ l:pathstr.' -maxdepth 1 -type f'.l:iregex.l:dirs)
     let l:foundlst = split(l:found, '\n')
     unlet l:found " to free some memory
 
@@ -259,7 +280,7 @@ function! s:ICFindIncludes(user, pathlst)
         let l:file = substitute(l:file, '\', '/', 'g')
         " find appropriate path
         let l:pathlst = filter(copy(a:pathlst), 'l:file =~ v:val[1]')
-        if len(l:pathlst) == 0
+        if empty(l:pathlst)
             continue
         endif
         let l:incpath = l:pathlst[0]

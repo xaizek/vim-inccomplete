@@ -1,4 +1,4 @@
-*inccomplete.txt*	For Vim version 7.3.  Last change: 2011 Jun 04
+*inccomplete.txt*	For Vim version 7.3.  Last change: 2011 Oct 09
 
 
 		  inccomplete plugin documentation    by xaizek
@@ -25,8 +25,8 @@ It can complete both "" and <> forms of #include.
 
 "" Completion~
 
-For "" it gets all header files in the current directory (so it's assumed that
-you have something similar to >
+For "" it gets all header files in the current directory or any relative
+directory (so it's assumed that you have something similar to >
     autocmd BufEnter,BufWinEnter * lcd %:p:h
 or >
     set autochdir
@@ -38,7 +38,7 @@ For <> it gets all files that have hpp or h extensions or don't have any.
 
 Sources for <> completion are:
 - 'path' option (on *nix it's set to '/usr/include' by default, but on Windows
-  you should set it to the right directories manually)
+  you should set it to right directories manually)
 - g:clang_user_options ('-I' keys)
 - b:clang_user_options ('-I' keys)
 
@@ -46,10 +46,14 @@ Note: current directory won't be used even if it present in one of sources.
 
 Completion of subdirectories~
 
-Only files of include directories are displayed in completion list, but you
-can complete files in subdirectories of include directories too. All you need
-is to call completion again after typing subdirectory name and slash (and
-maybe beginning of file name).
+When |g:inccomplete_showdirs| is false, only files of include directories are
+displayed in completion list, but you can complete files in subdirectories
+of include directories too.  All you need is to call completion again after
+typing subdirectory name and a slash (and optionally beginning of file name).
+
+When |g:inccomplete_showdirs| is true, completion list contains directories
+and it will popup after hitting forward or backward slash key.  Closing
+bracket is never added to directory completion items.
 
 ==============================================================================
 2. Configuration				*inccomplete-configuration*
@@ -64,7 +68,7 @@ Note: On Windows you need to have Cygwin installed and to set full path to
       let g:inccomplete_findcmd = 'c:/cygwin/bin/find'
 <     Or it can be any find utility that accepts the following
       parameters and multiple search paths: >
-      -maxdepth 1 -type f
+      -maxdepth 1 -type f -type d -or -L
 <
 
 how to add close bracket			*inccomplete-addclosebracket*
@@ -83,6 +87,14 @@ how to sort completion list			*inccomplete-sort*
 When this option equals "ignorecase" the case of letters of filenames will be
 ignored.
 
+add directories to completion list     		*inccomplete-showdirs*
+						*g:inccomplete_showdirs*
+						 type: bool
+						 default: false
+
+If value of this option evaluates to true, plugin will search for
+directories and add it to completion list.
+
 ==============================================================================
 3. ToDo						*inccomplete-todo*
 
@@ -91,5 +103,6 @@ ignored.
 - Is it possible to do file searching using only VimL?
 - Maybe '.' in path should be automatically replaced with the path to current
   buffer instead of assuming that working directory is correct?
+- Add optional caching for local includes (ones in the double quotes).
 
  vim:tw=78:ts=8:ft=help:norl:
