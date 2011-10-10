@@ -1,4 +1,4 @@
-*inccomplete.txt*	For Vim version 7.3.  Last change: 2011 Oct 09
+*inccomplete.txt*	For Vim version 7.3.  Last change: 2011 Oct 10
 
 
 		  inccomplete plugin documentation    by xaizek
@@ -61,7 +61,10 @@ bracket is never added to directory completion items.
 command to run GNU find program			*inccomplete-findcmd*
 						*g:inccomplete_findcmd*
                                                  type: string
-						 default: "find"
+						 default: ""
+
+When it's empty, plugin will use VimL functions to search files, otherwise it
+will use given external program.
 
 Note: On Windows you need to have Cygwin installed and to set full path to
       find utility. For example, like this: >
@@ -100,7 +103,6 @@ directories and add it to completion list.
 
 - Maybe 'path' option should be replaced with some global variable like
   g:inccomplete_incpath?
-- Is it possible to do file searching using only VimL?
 - Maybe '.' in path should be automatically replaced with the path to current
   buffer instead of assuming that working directory is correct?
 - Add optional caching for local includes (ones in the double quotes).

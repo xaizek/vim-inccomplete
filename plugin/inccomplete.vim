@@ -1,6 +1,6 @@
 " Name:    inccomplete
 " Author:  xaizek <xaizek@gmail.com>
-" Version: 1.4.21
+" Version: 1.5.21
 " License: Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -13,7 +13,7 @@ let g:loaded_inccomplete = 1
 let g:inccomplete_cache = {}
 
 if !exists('g:inccomplete_findcmd')
-    let g:inccomplete_findcmd = 'find'
+    let g:inccomplete_findcmd = ''
 endif
 
 if !exists('g:inccomplete_addclosebracket')
@@ -248,23 +248,41 @@ function! s:ICFindIncludes(user, pathlst)
         return []
     endif
     if a:user == 0
-        let l:iregex = ' -iregex '.shellescape('.*/[-_a-z0-9]+\(\.hpp\|\.h\)?$')
+        if empty(g:inccomplete_findcmd)
+            let l:regex = '.*/[-_a-z0-9]\+\(\.hpp\|\.h\)\?$'
+        else
+            let l:regex = '.*/[-_a-z0-9]+\(\.hpp\|\.h\)?$'
+        endif
     else
-        let l:iregex = ' -iregex '.shellescape('.*\(\.hpp\|\.h\)$')
+        let l:regex = '.*\(\.hpp\|\.h\)$'
     endif
 
-    " substitute in the next command is for Windows (it removes backslash in
-    " \" sequence, that can appear after escaping the path)
-    let l:substcmd = 'substitute(shellescape(v:val), ''\(.*\)\\\"$'','.
-                   \ ' "\\1\"", "")'
-    let l:pathstr = join(map(copy(a:pathlst), l:substcmd), ' ')
-
-    let l:dirs = g:inccomplete_showdirs ? ' -or -type d' : ''
-
     " execute find
-    let l:found = system(g:inccomplete_findcmd.' -L '.
-                       \ l:pathstr.' -maxdepth 1 -type f'.l:iregex.l:dirs)
-    let l:foundlst = split(l:found, '\n')
+    if empty(g:inccomplete_findcmd)
+        let l:pathstr = join(a:pathlst, ',')
+        let l:found = globpath(l:pathstr, '*', 1)
+        let l:foundlst = split(l:found, '\n')
+
+        if g:inccomplete_showdirs
+            call filter(l:foundlst,
+                      \ "v:val =~ '".l:regex."' || isdirectory(v:val)")
+        else
+            call filter(l:foundlst, "v:val =~ '".l:regex."'")
+        endif
+    else
+        " substitute in the next command is for Windows (it removes backslash in
+        " \" sequence, that can appear after escaping the path)
+        let l:substcmd = 'substitute(shellescape(v:val), ''\(.*\)\\\"$'','.
+                       \ ' "\\1\"", "")'
+
+
+        let l:pathstr = join(map(copy(a:pathlst), l:substcmd), ' ')
+        let l:iregex = ' -iregex '.shellescape(l:regex)
+        let l:dirs = g:inccomplete_showdirs ? ' -or -type d' : ''
+        let l:found = system(g:inccomplete_findcmd.' -L '.
+                           \ l:pathstr.' -maxdepth 1 -type f'.l:iregex.l:dirs)
+        let l:foundlst = split(l:found, '\n')
+    endif
     unlet l:found " to free some memory
 
     " prepare a:pathlst by forming regexps
