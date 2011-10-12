@@ -124,7 +124,11 @@ function! ICComplete(findstart, base)
                 continue
             endif
 
-            let l:bracket = isdirectory(l:increc[1]) ? '' : l:closebracket
+            if isdirectory(l:increc[0].l:increc[1])
+                let l:bracket = ''
+            else
+                let l:bracket = l:closebracket
+            endif
             let l:item = {
                         \ 'word': l:increc[1].l:bracket,
                         \ 'abbr': l:increc[1],
