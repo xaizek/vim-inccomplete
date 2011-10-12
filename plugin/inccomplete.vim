@@ -249,9 +249,9 @@ function! s:ICFindIncludes(user, pathlst)
     endif
     if a:user == 0
         if empty(g:inccomplete_findcmd)
-            let l:regex = '.*/[-_a-z0-9]\+\(\.hpp\|\.h\)\?$'
+            let l:regex = '.*[/\\][-_a-z0-9]\+\(\.hpp\|\.h\)\?$'
         else
-            let l:regex = '.*/[-_a-z0-9]+\(\.hpp\|\.h\)?$'
+            let l:regex = '.*[/\\][-_a-z0-9]+\(\.hpp\|\.h\)?$'
         endif
     else
         let l:regex = '.*\(\.hpp\|\.h\)$'
@@ -259,7 +259,7 @@ function! s:ICFindIncludes(user, pathlst)
 
     " execute find
     if empty(g:inccomplete_findcmd)
-        let l:pathstr = join(a:pathlst, ',')
+        let l:pathstr = substitute(join(a:pathlst, ','), '\\', '/', 'g')
         let l:found = globpath(l:pathstr, '*', 1)
         let l:foundlst = split(l:found, '\n')
 
