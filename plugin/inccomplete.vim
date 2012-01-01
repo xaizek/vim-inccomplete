@@ -1,6 +1,6 @@
 " Name:    inccomplete
 " Author:  xaizek <xaizek@gmail.com>
-" Version: 1.5.22
+" Version: 1.5.23
 " License: Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -132,7 +132,7 @@ function! ICComplete(findstart, base)
             let l:item = {
                         \ 'word': l:increc[1].l:bracket,
                         \ 'abbr': l:increc[1],
-                        \ 'menu': l:increc[0],
+                        \ 'menu': fnamemodify(l:increc[0], ':p:.'),
                         \ 'dup': 1
                         \}
             call add(l:comlst, l:item)
