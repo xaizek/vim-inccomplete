@@ -1,6 +1,6 @@
 " Name:    inccomplete
 " Author:  xaizek <xaizek@gmail.com>
-" Version: 1.5.23
+" Version: 1.5.24
 " License: Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -118,20 +118,24 @@ function! ICComplete(findstart, base)
         endif
 
         " form list of dictionaries
+        let [l:pos, l:sl1, l:sl2] = s:ICParsePath(a:base)
         let l:comlst = []
         for l:increc in l:inclst
             if empty(l:increc[1])
                 continue
             endif
 
-            if isdirectory(l:increc[0].l:increc[1])
+            if isdirectory(l:increc[0].'/'.l:increc[1])
                 let l:bracket = ''
+                let l:slash = l:sl1
             else
                 let l:bracket = l:closebracket
+                let l:slash = ''
             endif
+
             let l:item = {
                         \ 'word': l:increc[1].l:bracket,
-                        \ 'abbr': l:increc[1],
+                        \ 'abbr': l:increc[1].l:slash,
                         \ 'menu': fnamemodify(l:increc[0], ':p:.'),
                         \ 'dup': 1
                         \}
@@ -161,19 +165,7 @@ endfunction
 
 " filters search results
 function! s:ICFilterIncLst(user, inclst, base)
-    let l:iswindows = has('win16') || has('win32') || has('win64') ||
-                \ has('win95') || has('win32unix')
-
-    " determine type of slash
-    let l:base = a:base
-    let l:pos = strridx(a:base, '/')
-    let l:sl1 = '/'
-    let l:sl2 = '/'
-    if l:iswindows && (empty(a:base) || l:pos < 0)
-        let l:pos = strridx(a:base, '\')
-        let l:sl1 = '\\\\'
-        let l:sl2 = '\'
-    endif
+    let [l:pos, l:sl1, l:sl2] = s:ICParsePath(a:base)
 
     " filter by filename
     let l:filebegin = a:base[strridx(a:base, l:sl2) + 1:]
@@ -217,6 +209,24 @@ function! s:ICFilterIncLst(user, inclst, base)
     endif
 
     return l:inclst
+endfunction
+
+" returns list of three elements: [name_pos, slash_for_regexps, ordinary_slash]
+function! s:ICParsePath(path)
+    let l:iswindows = has('win16') || has('win32') || has('win64') ||
+                    \ has('win95') || has('win32unix')
+
+    " determine type of slash
+    let l:path = a:path
+    let l:pos = strridx(a:path, '/')
+    let l:sl1 = '/'
+    let l:sl2 = '/'
+    if l:iswindows && (empty(a:path) || l:pos < 0)
+        let l:pos = strridx(a:path, '\')
+        let l:sl1 = '\\\\'
+        let l:sl2 = '\'
+    endif
+    return [l:pos, l:sl1, l:sl2]
 endfunction
 
 " searches for files that can be included in path
