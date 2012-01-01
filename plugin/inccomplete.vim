@@ -1,6 +1,6 @@
 " Name:    inccomplete
 " Author:  xaizek <xaizek@gmail.com>
-" Version: 1.5.21
+" Version: 1.5.22
 " License: Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -207,7 +207,13 @@ function! s:ICFilterIncLst(user, inclst, base)
 
         " move end of each path to the beginning of filename
         let l:cutidx = - (l:pos + 2)
-        call map(l:inclst, '[v:val[0][:l:cutidx], l:dirend0.v:val[1]]')
+        if !empty(l:inclst) && l:inclst[0][0][l:cutidx + 1:] != l:dirend0
+                    \ && a:user
+            let l:path = expand('%:p:h')
+            call map(l:inclst, '[l:path, l:dirend0.v:val[1]]')
+        else
+            call map(l:inclst, '[v:val[0][:l:cutidx], l:dirend0.v:val[1]]')
+        endif
     endif
 
     return l:inclst
