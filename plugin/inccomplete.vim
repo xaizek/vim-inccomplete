@@ -127,7 +127,7 @@ function! ICComplete(findstart, base)
 
             if isdirectory(l:increc[0].'/'.l:increc[1])
                 let l:bracket = ''
-                let l:slash = l:sl1
+                let l:slash = l:sl2
             else
                 let l:bracket = l:closebracket
                 let l:slash = ''
