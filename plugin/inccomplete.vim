@@ -1,6 +1,6 @@
 " Name:    inccomplete
 " Author:  xaizek <xaizek@gmail.com>
-" Version: 1.5.24
+" Version: 1.6.24
 " License: Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -101,6 +101,9 @@ function! ICComplete(findstart, base)
         return eval(s:oldomnifuncs[l:curbuf].
                   \ "(".a:findstart.",'".a:base."')")
     else
+        let l:old_cwd = getcwd()
+        lcd %:p:h
+
         " get list of all candidates and reduce it to those starts with a:base
         let l:pos = match(getline('.'), '<\|"')
         let l:bracket = getline('.')[l:pos : l:pos]
@@ -142,6 +145,8 @@ function! ICComplete(findstart, base)
             call add(l:comlst, l:item)
         endfor
 
+        execute 'lcd' l:old_cwd
+
         return s:SortList(l:comlst)
     endif
 endfunction
@@ -182,7 +187,7 @@ function! s:ICFilterIncLst(user, inclst, base)
         " filter by subdirectory name
         let l:dirend0 = a:base[:l:pos]
         if a:user
-            let l:dirend1 = fnamemodify(l:dirend0, ':p')
+            let l:dirend1 = fnamemodify(expand('%:p:h').'/'.l:dirend0, ':p')
         else
             let l:dirend1 = l:dirend0
         endif
@@ -192,7 +197,7 @@ function! s:ICFilterIncLst(user, inclst, base)
             let l:dirend2 = escape(l:dirend1, '\')
         endif
         if a:user
-            call filter(l:inclst, 'v:val[0] =~ "^".l:dirend2')
+            call filter(l:inclst, 'v:val[0] =~ "^".l:dirend2."[\\/]*$"')
         else
             call filter(l:inclst, 'v:val[0] =~ "'.l:sl1.'".l:dirend2."$"')
         endif
@@ -234,7 +239,8 @@ endfunction
 " everywhere in path except '.'
 function! s:ICGetList(user, base)
     if a:user
-        return s:ICFindIncludes(1, ['.'] + s:ICGetSubDirs(['.'], a:base))
+        let l:dir = expand('%:h:p')
+        return s:ICFindIncludes(1, [l:dir] + s:ICGetSubDirs([l:dir], a:base))
     endif
 
     " prepare list of directories

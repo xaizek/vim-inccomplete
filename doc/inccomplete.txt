@@ -1,4 +1,4 @@
-*inccomplete.txt*	For Vim version 7.3.  Last change: 2011 Oct 10
+*inccomplete.txt*	For Vim version 7.3.  Last change: 2012 Jan 6
 
 
 		  inccomplete plugin documentation    by xaizek
@@ -26,11 +26,7 @@ It can complete both "" and <> forms of #include.
 "" Completion~
 
 For "" it gets all header files in the current directory or any relative
-directory (so it's assumed that you have something similar to >
-    autocmd BufEnter,BufWinEnter * lcd %:p:h
-or >
-    set autochdir
-in your .vimrc).
+to it directory.
 
 <> Completion~
 
@@ -52,8 +48,9 @@ of include directories too.  All you need is to call completion again after
 typing subdirectory name and a slash (and optionally beginning of file name).
 
 When |g:inccomplete_showdirs| is true, completion list contains directories
-and it will popup after hitting forward or backward slash key.  Closing
-bracket is never added to directory completion items.
+and it will popup after hitting forward or backward slash key.  Directories
+can be distinguished by the ending slash.  Closing bracket is never added
+to directory completion items.
 
 ==============================================================================
 2. Configuration				*inccomplete-configuration*
