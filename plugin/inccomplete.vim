@@ -41,7 +41,7 @@ function! s:ICInit()
     endif
 
     " save current 'omnifunc'
-    let l:curbuf = fnamemodify(bufname('%'), ':p')
+    let l:curbuf = expand('%:p')
     if !exists('s:oldomnifuncs')
         let s:oldomnifuncs = {}
     endif
@@ -79,7 +79,7 @@ endfunction
 
 " this is the 'omnifunc'
 function! ICComplete(findstart, base)
-    let l:curbuf = fnamemodify(bufname('%'), ':p')
+    let l:curbuf = expand('%:p')
     if a:findstart
         " did user request #include completion?
         let s:passnext = getline('.') !~ '^\s*#\s*include\s*\%(<\|"\)'
@@ -216,24 +216,6 @@ function! s:ICFilterIncLst(user, inclst, base)
     return l:inclst
 endfunction
 
-" returns list of three elements: [name_pos, slash_for_regexps, ordinary_slash]
-function! s:ICParsePath(path)
-    let l:iswindows = has('win16') || has('win32') || has('win64') ||
-                    \ has('win95') || has('win32unix')
-
-    " determine type of slash
-    let l:path = a:path
-    let l:pos = strridx(a:path, '/')
-    let l:sl1 = '/'
-    let l:sl2 = '/'
-    if l:iswindows && (empty(a:path) || l:pos < 0)
-        let l:pos = strridx(a:path, '\')
-        let l:sl1 = '\\\\'
-        let l:sl2 = '\'
-    endif
-    return [l:pos, l:sl1, l:sl2]
-endfunction
-
 " searches for files that can be included in path
 " a:user determines search area, when it's not zero look only in '.', otherwise
 " everywhere in path except '.'
@@ -273,7 +255,7 @@ function! s:ICFindIncludes(user, pathlst)
     if empty(a:pathlst)
         return []
     endif
-    if a:user == 0
+    if !a:user
         if empty(g:inccomplete_findcmd)
             let l:regex = '.*[/\\][-_a-z0-9]\+\(\.hpp\|\.h\)\?$'
         else
@@ -354,13 +336,7 @@ endfunction
 
 " searches for existing subdirectories
 function! s:ICGetSubDirs(pathlst, base)
-    " determine type of slash
-    let l:pos = strridx(a:base, '/')
-    let l:sl = '/'
-    if l:pos < 0
-        let l:pos = strridx(a:base, '\')
-        let l:sl = '\\\\'
-    endif
+    let [l:pos, l:sl, l:sl2] = s:ICParsePath(a:base)
     if l:pos < 0
         return []
     endif
@@ -378,6 +354,24 @@ function! s:ICGetSubDirs(pathlst, base)
     call map(l:subdirs, l:mapcmd)
 
     return l:subdirs
+endfunction
+
+" returns list of three elements: [name_pos, slash_for_regexps, ordinary_slash]
+function! s:ICParsePath(path)
+    let l:iswindows = has('win16') || has('win32') || has('win64') ||
+                    \ has('win95') || has('win32unix')
+
+    " determine type of slash
+    let l:path = a:path
+    let l:pos = strridx(a:path, '/')
+    let l:sl1 = '/'
+    let l:sl2 = '/'
+    if l:iswindows && (empty(a:path) || l:pos < 0)
+        let l:pos = strridx(a:path, '\')
+        let l:sl1 = '\\\\'
+        let l:sl2 = '\'
+    endif
+    return [l:pos, l:sl1, l:sl2]
 endfunction
 
 " adds one list to another without duplicating items
