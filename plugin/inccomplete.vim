@@ -1,6 +1,6 @@
 " Name:    inccomplete
 " Author:  xaizek <xaizek@gmail.com>
-" Version: 1.6.24
+" Version: 1.6.25
 " License: Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -139,8 +139,8 @@ function! ICComplete(findstart, base)
             let l:item = {
                         \ 'word': l:increc[1].l:bracket,
                         \ 'abbr': l:increc[1].l:slash,
-                        \ 'menu': fnamemodify(l:increc[0], ':p:.'),
-                        \ 'dup': 1
+                        \ 'menu': s:ICModifyPath(l:increc[0]),
+                        \ 'dup': 0
                         \}
             call add(l:comlst, l:item)
         endfor
@@ -166,6 +166,17 @@ endfunction
 function s:Comparer(i1, i2)
     return a:i1['abbr'] ==# a:i2['abbr'] ? 0 :
                 \ (a:i1['abbr'] ># a:i2['abbr'] ? 1 : -1)
+endfunction
+
+" modifies path correctly on Windows
+function! s:ICModifyPath(path)
+    let l:drive_regexp = '\C^[a-zA-Z]:'
+    let l:modified = fnamemodify(a:path, ':p:.')
+    let l:prefix = ''
+    if has('win32') && a:path =~ l:drive_regexp && !empty(l:modified)
+        let l:prefix = matchstr(a:path, l:drive_regexp)
+    endif
+    return l:prefix.l:modified
 endfunction
 
 " filters search results
@@ -331,6 +342,8 @@ function! s:ICGetClangIncludes()
     let l:lst = split(b:clang_user_options.' '.g:clang_user_options, ' ')
     let l:lst = filter(l:lst, 'v:val =~ "\\C^-I"')
     let l:lst = map(l:lst, 'v:val[2:]')
+    let l:lst = map(l:lst, 'fnamemodify(v:val, ":p")')
+    let l:lst = map(l:lst, 'substitute(v:val, "\\\\", "/", "g")')
     return l:lst
 endfunction
 
