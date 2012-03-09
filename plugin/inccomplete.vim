@@ -1,6 +1,6 @@
 " Name:    inccomplete
 " Author:  xaizek <xaizek@gmail.com>
-" Version: 1.6.25
+" Version: 1.6.26
 " License: Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -55,7 +55,7 @@ endfunction
 " we do.
 function! ICCompleteInc(bracket)
     if a:bracket == '/' || a:bracket == '\'
-        if getline('.') =~ '^\s*#\s*include\s*["<].*$'
+        if getline('.') =~ '^\s*#\s*include\s*["<][^">]*$'
             return a:bracket."\<c-x>\<c-o>"
         endif
     endif
