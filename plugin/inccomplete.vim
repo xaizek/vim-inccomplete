@@ -1,6 +1,6 @@
 " Name:    inccomplete
 " Author:  xaizek <xaizek@gmail.com>
-" Version: 1.6.27
+" Version: 1.6.28
 " License: Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -101,12 +101,17 @@ function! ICComplete(findstart, base)
         return eval(s:oldomnifuncs[l:curbuf].
                   \ "(".a:findstart.",'".a:base."')")
     else
+        let l:pos = match(getline('.'), '<\|"')
+        let l:bracket = getline('.')[l:pos : l:pos]
+
+        if empty(a:base) && l:bracket == '<' && exists('s:fullCached')
+            return s:fullCached
+        endif
+
         let l:old_cwd = getcwd()
         lcd %:p:h
 
         " get list of all candidates and reduce it to those starts with a:base
-        let l:pos = match(getline('.'), '<\|"')
-        let l:bracket = getline('.')[l:pos : l:pos]
         let l:inclst = s:ICGetList(l:bracket == '"', a:base)
         let l:inclst = s:ICFilterIncLst(l:bracket == '"', l:inclst, a:base)
 
@@ -129,15 +134,15 @@ function! ICComplete(findstart, base)
             endif
 
             if isdirectory(l:increc[0].'/'.l:increc[1])
-                let l:bracket = ''
+                let l:strend = ''
                 let l:slash = l:sl2
             else
-                let l:bracket = l:closebracket
+                let l:strend = l:closebracket
                 let l:slash = ''
             endif
 
             let l:item = {
-                        \ 'word': l:increc[1].l:bracket,
+                        \ 'word': l:increc[1].l:strend,
                         \ 'abbr': l:increc[1].l:slash,
                         \ 'menu': s:ICModifyPath(l:increc[0]),
                         \ 'dup': 0
@@ -147,7 +152,13 @@ function! ICComplete(findstart, base)
 
         execute 'lcd' l:old_cwd
 
-        return s:SortList(l:comlst)
+        let l:result = s:SortList(l:comlst)
+
+        if empty(a:base) && l:bracket == '<'
+            let s:fullCached = l:result
+        endif
+
+        return l:result
     endif
 endfunction
 
