@@ -1,6 +1,6 @@
 " Name:    inccomplete
 " Author:  xaizek <xaizek@gmail.com>
-" Version: 1.6.26
+" Version: 1.6.27
 " License: Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -237,10 +237,9 @@ function! s:ICGetList(user, base)
     endif
 
     " prepare list of directories
-    let l:pathlst = s:ICAddNoDups(split(&path, ','), s:ICGetClangIncludes())
-    let l:pathlst = s:ICAddNoDups(l:pathlst, s:ICGetSubDirs(l:pathlst, a:base))
-    call filter(l:pathlst, 'v:val != "" && v:val !~ "^\.$"')
-    call map(l:pathlst, 'fnamemodify(v:val, ":p")')
+    let l:pathlst = s:ICAddNoDupPaths(split(&path, ','), s:ICGetClangIncludes())
+    let l:pathlst = s:ICAddNoDupPaths(l:pathlst,
+                                    \ s:ICGetSubDirs(l:pathlst, a:base))
     call reverse(sort(l:pathlst))
 
     " divide it into sublists
@@ -387,15 +386,23 @@ function! s:ICParsePath(path)
     return [l:pos, l:sl1, l:sl2]
 endfunction
 
-" adds one list to another without duplicating items
-function! s:ICAddNoDups(lista, listb)
+" adds one list of paths to another without duplicating items
+function! s:ICAddNoDupPaths(lista, listb)
     let l:result = []
+    call s:ICPrepPaths(a:lista)
+    call s:ICPrepPaths(a:listb)
     for l:item in a:lista + a:listb
         if index(l:result, l:item) == -1
             call add(l:result, l:item)
         endif
     endfor
     return l:result
+endfunction
+
+" converts list of paths to a list of absolute paths and excudes '.' directory
+function! s:ICPrepPaths(lst)
+    call filter(a:lst, '!empty(v:val) && v:val != "."')
+    return map(a:lst, 'fnamemodify(v:val, ":p")')
 endfunction
 
 " vim: set foldmethod=syntax foldlevel=0 :
