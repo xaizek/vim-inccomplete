@@ -1,4 +1,4 @@
-*inccomplete.txt*	For Vim version 7.3.  Last change: 2012 Jan 6
+*inccomplete.txt*	For Vim version 7.3.  Last change: 2012 Apr 18
 
 
 		  inccomplete plugin documentation    by xaizek
@@ -94,6 +94,15 @@ add directories to completion list     		*inccomplete-showdirs*
 
 If value of this option evaluates to true, plugin will search for
 directories and add it to completion list.
+
+append a slash to directory names     		*inccomplete-appendslash*
+						*g:inccomplete_appendslash*
+						 type: bool
+						 default: false
+
+If value of this option evaluates to true, the plugin will append a slash
+to directory name completion items. Otherwise slashes will be added in the
+menu only.
 
 ==============================================================================
 3. ToDo						*inccomplete-todo*

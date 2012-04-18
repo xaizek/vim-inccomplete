@@ -1,6 +1,6 @@
 " Name:    inccomplete
 " Author:  xaizek <xaizek@gmail.com>
-" Version: 1.6.28
+" Version: 1.6.29
 " License: Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -26,6 +26,10 @@ endif
 
 if !exists('g:inccomplete_showdirs')
     let g:inccomplete_showdirs = 0
+endif
+
+if !exists('g:inccomplete_appendslash')
+    let g:inccomplete_appendslash = 0
 endif
 
 autocmd FileType c,cpp,objc,objcpp call s:ICInit()
@@ -134,7 +138,7 @@ function! ICComplete(findstart, base)
             endif
 
             if isdirectory(l:increc[0].'/'.l:increc[1])
-                let l:strend = ''
+                let l:strend = g:inccomplete_appendslash ? l:sl2 : ''
                 let l:slash = l:sl2
             else
                 let l:strend = l:closebracket
