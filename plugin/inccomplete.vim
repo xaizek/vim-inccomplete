@@ -1,5 +1,5 @@
 " Name:    inccomplete
-" Author:  xaizek <xaizek@gmail.com>
+" Author:  xaizek <xaizek@lavabit.com>
 " Version: 1.6.29
 " License: Same terms as Vim itself (see :help license)
 "
