@@ -1,6 +1,6 @@
 " Name:    inccomplete
 " Author:  xaizek <xaizek@lavabit.com>
-" Version: 1.6.29
+" Version: 1.6.30
 " License: Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -200,7 +200,8 @@ function! s:ICFilterIncLst(user, inclst, base)
 
     " filter by filename
     let l:filebegin = a:base[strridx(a:base, l:sl2) + 1:]
-    let l:inclst = filter(copy(a:inclst), 'v:val[1] =~ "^".l:filebegin')
+    let l:inclst = filter(copy(a:inclst),
+                        \ '!empty(v:val[1]) && v:val[1] =~ "^".l:filebegin')
 
     " correct slashes in paths
     if l:sl1 == '/'
