@@ -129,6 +129,8 @@ function! ICComplete(findstart, base)
             let l:closebracket = ''
         endif
 
+        let l:existend_list = s:ICListIncludes()[l:bracket == '"']
+
         " form list of dictionaries
         let [l:pos, l:sl1, l:sl2] = s:ICParsePath(a:base)
         let l:comlst = []
@@ -145,6 +147,8 @@ function! ICComplete(findstart, base)
 
                 let l:strend = g:inccomplete_appendslash ? l:sl2 : ''
                 let l:slash = l:sl2
+            elseif index(l:existend_list, l:increc[1]) >= 0
+                continue
             else
                 let l:strend = l:closebracket
                 let l:slash = ''
@@ -169,6 +173,31 @@ function! ICComplete(findstart, base)
 
         return l:result
     endif
+endfunction
+
+function! s:ICListIncludes()
+    let l:lines = getline(0, '$')
+    call filter(l:lines, 'v:val =~? &include')
+    call map(l:lines, 'matchstr(v:val, &include.''\s*\zs.*\ze$'')')
+
+    let l:sys = []
+    let l:usr = []
+    for l:include in l:lines
+        if l:include[0] == '<'
+            call add(l:sys, l:include[1:])
+        else
+            call add(l:usr, l:include[1:])
+        endif
+    endfor
+    unlet l:lines
+
+    call map(l:sys, 'matchstr(v:val, ''^[^>]\+'')')
+    call map(l:usr, 'matchstr(v:val, ''^[^"]\+'')')
+
+    " echo l:sys
+    " echo l:usr
+
+    return [l:sys, l:usr]
 endfunction
 
 " sorts completion list
