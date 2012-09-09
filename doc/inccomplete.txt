@@ -1,4 +1,4 @@
-*inccomplete.txt*	For Vim version 7.3.  Last change: 2012 Sep 02
+*inccomplete.txt*	For Vim version 7.3.  Last change: 2012 Sep 09
 
 
 		  inccomplete plugin documentation    by xaizek
@@ -49,8 +49,9 @@ typing subdirectory name and a slash (and optionally beginning of file name).
 
 When |g:inccomplete_showdirs| is true, completion list contains directories
 and it will popup after hitting forward or backward slash key.  Directories
-can be distinguished by the ending slash.  Closing bracket is never added
-to directory completion items.
+can be distinguished by the ending slash.  Directories which names start with
+a dot are ignored.  Closing bracket is never added to directory completion
+items.
 
 ==============================================================================
 2. Configuration				*inccomplete-configuration*

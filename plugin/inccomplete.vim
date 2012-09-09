@@ -1,6 +1,6 @@
 " Name:    inccomplete
 " Author:  xaizek <xaizek@lavabit.com>
-" Version: 1.6.30
+" Version: 1.6.31
 " License: Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -138,6 +138,11 @@ function! ICComplete(findstart, base)
             endif
 
             if isdirectory(l:increc[0].'/'.l:increc[1])
+                let l:slashidx = strridx(l:increc[1], l:sl2)
+                if l:increc[1][l:slashidx + 1] == '.'
+                    continue
+                endif
+
                 let l:strend = g:inccomplete_appendslash ? l:sl2 : ''
                 let l:slash = l:sl2
             else
