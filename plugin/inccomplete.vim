@@ -1,7 +1,8 @@
-" Name:    inccomplete
-" Author:  xaizek <xaizek@lavabit.com>
-" Version: 1.6.31
-" License: Same terms as Vim itself (see :help license)
+" Name:            inccomplete
+" Author:          xaizek  <xaizek@lavabit.com>
+" Maintainers:     drougas <drougas@cs.ucr.edu>
+" Version:         1.6.32
+" License:         Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
 
@@ -11,6 +12,10 @@ endif
 
 let g:loaded_inccomplete = 1
 let g:inccomplete_cache = {}
+
+if !exists('g:inccomplete_autoselect')
+    let g:inccomplete_autoselect = 1
+endif
 
 if !exists('g:inccomplete_findcmd')
     let g:inccomplete_findcmd = ''
@@ -51,6 +56,13 @@ function! s:ICInit()
     endif
     let s:oldomnifuncs[l:curbuf] = &omnifunc
 
+    " Force menuone. Without it, when there's only one completion result,
+    " it can be confusing (not completing and no popup)
+    if g:inccomplete_autoselect != 2
+        setlocal completeopt-=menu
+        setlocal completeopt+=menuone
+    endif
+
     " set our omnifunc
     setlocal omnifunc=ICComplete
 endfunction
@@ -58,9 +70,18 @@ endfunction
 " checks whether we need to do completion after <, ", / or \ and starts it when
 " we do.
 function! ICCompleteInc(bracket)
+
+    let l:keycomp = "\<c-x>\<c-o>"
+    if g:inccomplete_autoselect != 2
+        let l:keycomp .= "\<c-p>"
+        if g:inccomplete_autoselect == 1
+            let l:keycomp .= "\<c-r>=(pumvisible() ? \"\\<down>\" : '')\<cr>"
+        endif
+    endif
+
     if a:bracket == '/' || a:bracket == '\'
         if getline('.') =~ '^\s*#\s*include\s*["<][^">]*$'
-            return a:bracket."\<c-x>\<c-o>"
+            return a:bracket.l:keycomp
         endif
     endif
 
@@ -74,10 +95,10 @@ function! ICCompleteInc(bracket)
         let l:closebracket = ['"', '>'][a:bracket == '<']
 
         " put brackets and start completion
-        return a:bracket.l:closebracket."\<left>\<c-x>\<c-o>"
+        return a:bracket.l:closebracket."\<left>".l:keycomp
     else
         " put bracket and start completion
-        return a:bracket."\<c-x>\<c-o>"
+        return a:bracket.l:keycomp
     endif
 endfunction
 

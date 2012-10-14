@@ -1,4 +1,4 @@
-*inccomplete.txt*	For Vim version 7.3.  Last change: 2012 Sep 09
+*inccomplete.txt*	For Vim version 7.3.  Last change: 2012 Oct 13
 
 
 		  inccomplete plugin documentation    by xaizek
@@ -55,6 +55,15 @@ items.
 
 ==============================================================================
 2. Configuration				*inccomplete-configuration*
+
+Whether to autoselect the first entry		*inccomplete-autoselect*
+						*g:inccomplete_autoselect*
+If equal to 0, nothing is selected.
+If equal to 1, automatically select the first entry in the popup menu, but
+without inserting it into the code.
+If equal to 2, automatically select the first entry in the popup menu, and
+insert it into the code.
+Default: 1
 
 command to run GNU find program			*inccomplete-findcmd*
 						*g:inccomplete_findcmd*
