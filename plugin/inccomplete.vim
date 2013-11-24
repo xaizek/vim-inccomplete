@@ -1,5 +1,5 @@
 " Name:            inccomplete
-" Author:          xaizek  <xaizek@lavabit.com>
+" Author:          xaizek  <xaizek@openmailbox.org>
 " Maintainers:     drougas <drougas@cs.ucr.edu>
 " Version:         1.6.32
 " License:         Same terms as Vim itself (see :help license)

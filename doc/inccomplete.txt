@@ -10,7 +10,7 @@ inccomplete plugin					*inccomplete*
 2. Configuration		|inccomplete-configuration|
 3. ToDo		       	 	|inccomplete-todo|
 
-Author:  xaizek <xaizek@lavabit.com>         		*inccomplete-author*
+Author:  xaizek <xaizek@openmailbox.org>       		*inccomplete-author*
 License: Same terms as Vim itself (see |license|)
 
 ==============================================================================
