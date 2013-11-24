@@ -1,4 +1,4 @@
-*inccomplete.txt*	For Vim version 7.3.  Last change: 2012 Oct 13
+*inccomplete.txt*	For Vim version 7.3.  Last change: 2013 Nov 24
 
 
 		  inccomplete plugin documentation    by xaizek
@@ -122,5 +122,6 @@ menu only.
 - Maybe '.' in path should be automatically replaced with the path to current
   buffer instead of assuming that working directory is correct?
 - Add optional caching for local includes (ones in the double quotes).
+- Maybe filter out includes that already present in the buffer.
 
  vim:tw=78:ts=8:ft=help:norl:
