@@ -1,7 +1,7 @@
 " Name:            inccomplete
 " Author:          xaizek  <xaizek@openmailbox.org>
 " Maintainers:     drougas <drougas@cs.ucr.edu>
-" Version:         1.6.32
+" Version:         1.6.33
 " License:         Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -50,7 +50,7 @@ function! s:ICInit()
     endif
 
     " save current 'omnifunc'
-    let l:curbuf = expand('%:p')
+    let l:curbuf = s:ICGetBufferName()
     if !exists('s:oldomnifuncs')
         let s:oldomnifuncs = {}
     endif
@@ -70,7 +70,6 @@ endfunction
 " checks whether we need to do completion after <, ", / or \ and starts it when
 " we do.
 function! ICCompleteInc(bracket)
-
     let l:keycomp = "\<c-x>\<c-o>"
     if g:inccomplete_autoselect != 2
         let l:keycomp .= "\<c-p>"
@@ -104,7 +103,7 @@ endfunction
 
 " this is the 'omnifunc'
 function! ICComplete(findstart, base)
-    let l:curbuf = expand('%:p')
+    let l:curbuf = s:ICGetBufferName()
     if a:findstart
         " did user request #include completion?
         let s:passnext = getline('.') !~ '^\s*#\s*include\s*\%(<\|"\)'
@@ -240,7 +239,7 @@ function! s:ICFilterIncLst(user, inclst, base)
         " filter by subdirectory name
         let l:dirend0 = a:base[:l:pos]
         if a:user
-            let l:dirend1 = fnamemodify(expand('%:p:h').'/'.l:dirend0, ':p')
+            let l:dirend1 = fnamemodify(s:ICGetDir().'/'.l:dirend0, ':p')
         else
             let l:dirend1 = l:dirend0
         endif
@@ -259,7 +258,7 @@ function! s:ICFilterIncLst(user, inclst, base)
         let l:cutidx = - (l:pos + 2)
         if !empty(l:inclst) && l:inclst[0][0][l:cutidx + 1:] != l:dirend0
                     \ && a:user
-            let l:path = expand('%:p:h')
+            let l:path = s:ICGetDir()
             call map(l:inclst, '[l:path, l:dirend0.v:val[1]]')
         else
             call map(l:inclst, '[v:val[0][:l:cutidx], l:dirend0.v:val[1]]')
@@ -274,7 +273,7 @@ endfunction
 " everywhere in path except '.'
 function! s:ICGetList(user, base)
     if a:user
-        let l:dir = expand('%:h:p')
+        let l:dir = s:ICGetDir()
         return s:ICFindIncludes(1, [l:dir] + s:ICGetSubDirs([l:dir], a:base))
     endif
 
@@ -299,6 +298,22 @@ function! s:ICGetList(user, base)
     endfor
 
     return l:result
+endfunction
+
+" gets directory of the current buffer
+function! s:ICGetDir()
+    let l:curbuf = s:ICGetBufferName()
+    let l:dir = fnamemodify(l:curbuf, ':p:h')
+    return l:dir
+endfunction
+
+" gets name of the current buffer
+function! s:ICGetBufferName()
+    let l:curbuf = expand('%:p')
+    if empty(l:curbuf)
+        let l:curbuf = getcwd() . '/vim_buffer_without_name_' . bufnr('%')
+    endif
+    return l:curbuf
 endfunction
 
 " gets list of header files using find
@@ -335,7 +350,6 @@ function! s:ICFindIncludes(user, pathlst)
         let l:substcmd = 'substitute(shellescape(v:val), ''\(.*\)\\\"$'','.
                        \ ' "\\1\"", "")'
 
-
         let l:pathstr = join(map(copy(a:pathlst), l:substcmd), ' ')
         let l:iregex = ' -iregex '.shellescape(l:regex)
         let l:dirs = g:inccomplete_showdirs ? ' -or -type d' : ''
@@ -356,20 +370,20 @@ function! s:ICFindIncludes(user, pathlst)
     let l:result = []
     for l:file in l:foundlst
         let l:file = substitute(l:file, '\', '/', 'g')
-        " find appropriate path
-        let l:pathlst = filter(copy(a:pathlst), 'l:file =~ v:val[1]')
+        " find appropriate parent path ("." at the end forbids exact match)
+        let l:pathlst = filter(copy(a:pathlst), 'l:file =~ v:val[1]."."')
         if empty(l:pathlst)
             continue
         endif
-        let l:incpath = l:pathlst[0]
+        let l:incpath = l:pathlst[0][0]
         " add entry to list
-        let l:left = l:file[len(l:incpath[0]):]
+        let l:left = l:file[len(l:incpath):]
         if l:left[0] == '/' || l:left[0] == '\'
             let l:left = l:left[1:]
         endif
-        call add(l:result, [l:incpath[0], l:left])
+        call add(l:result, [l:incpath, l:left])
         " and to cache
-        call add(g:inccomplete_cache[l:incpath[0]], l:left)
+        call add(g:inccomplete_cache[l:incpath], l:left)
     endfor
     return l:result
 endfunction
