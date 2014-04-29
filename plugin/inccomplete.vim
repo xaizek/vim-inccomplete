@@ -1,7 +1,7 @@
 " Name:            inccomplete
 " Author:          xaizek  <xaizek@openmailbox.org>
 " Maintainers:     drougas <drougas@cs.ucr.edu>
-" Version:         1.6.33
+" Version:         1.6.34
 " License:         Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -37,10 +37,29 @@ if !exists('g:inccomplete_appendslash')
     let g:inccomplete_appendslash = 0
 endif
 
-autocmd FileType c,cpp,objc,objcpp call s:ICInit()
+augroup inccompleteDeferredInit
+    autocmd!
+    autocmd VimEnter * call s:ICDeferredLoad()
+augroup END
+
+" initializes inccomplete after all other plugins are loaded
+function s:ICDeferredLoad()
+    augroup inccomplete
+        autocmd!
+        autocmd BufRead,BufEnter,FileType * call s:ICInit()
+    augroup END
+endfunction
 
 " maps <, ", / and \, sets 'omnifunc'
 function! s:ICInit()
+    " leave fast if we don't need to do anything for the buffer
+    if &l:omnifunc ==# 'ICComplete'
+        return
+    endif
+    if index(['c', 'cpp', 'cpp', 'cpp'], &l:filetype) == -1
+        return
+    endif
+
     " remap < and "
     inoremap <expr> <buffer> < ICCompleteInc('<')
     inoremap <expr> <buffer> " ICCompleteInc('"')
@@ -56,7 +75,7 @@ function! s:ICInit()
     endif
     let s:oldomnifuncs[l:curbuf] = &omnifunc
 
-    " Force menuone. Without it, when there's only one completion result,
+    " force menuone. Without it, when there's only one completion result,
     " it can be confusing (not completing and no popup)
     if g:inccomplete_autoselect != 2
         setlocal completeopt-=menu
