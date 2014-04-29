@@ -37,17 +37,22 @@ if !exists('g:inccomplete_appendslash')
     let g:inccomplete_appendslash = 0
 endif
 
+" initialize inccomplete after all other plugins are loaded
 augroup inccompleteDeferredInit
     autocmd!
-    autocmd VimEnter * call s:ICDeferredLoad()
+    autocmd VimEnter * call s:ICInstallAutocommands()
 augroup END
 
-" initializes inccomplete after all other plugins are loaded
-function s:ICDeferredLoad()
+function s:ICInstallAutocommands()
     augroup inccomplete
         autocmd!
         autocmd BufRead,BufEnter,FileType * call s:ICInit()
     augroup END
+
+    " VimEnter autocommand is executed after other autocommands we're
+    " interested in, thus we need to do this for file passed on the command
+    " line manually
+    call s:ICInit()
 endfunction
 
 " maps <, ", / and \, sets 'omnifunc'
