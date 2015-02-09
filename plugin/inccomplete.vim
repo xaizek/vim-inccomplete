@@ -1,7 +1,7 @@
 " Name:            inccomplete
 " Author:          xaizek  <xaizek@openmailbox.org>
 " Maintainers:     drougas <drougas@cs.ucr.edu>
-" Version:         1.6.34
+" Version:         1.6.35
 " License:         Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -415,10 +415,18 @@ endfunction
 " retrieves include directories from b:clang_user_options and
 " g:clang_user_options
 function! s:ICGetClangIncludes()
-    if !exists('b:clang_user_options') || !exists('g:clang_user_options')
+    let l:opts = ''
+    if exists('b:clang_user_options')
+        let l:opts .= b:clang_user_options.' '
+    endif
+    if exists('g:clang_user_options')
+        let l:opts .= g:clang_user_options.' '
+    endif
+    if empty(l:opts)
         return []
     endif
-    let l:lst = split(b:clang_user_options.' '.g:clang_user_options, ' ')
+
+    let l:lst = split(l:opts, ' ')
     let l:lst = filter(l:lst, 'v:val =~ "\\C^-I"')
     let l:lst = map(l:lst, 'v:val[2:]')
     let l:lst = map(l:lst, 'fnamemodify(v:val, ":p")')
