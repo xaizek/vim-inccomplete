@@ -1,7 +1,7 @@
 " Name:            inccomplete
 " Author:          xaizek  <xaizek@openmailbox.org>
 " Maintainers:     drougas <drougas@cs.ucr.edu>
-" Version:         1.6.35
+" Version:         1.6.36
 " License:         Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -58,10 +58,7 @@ endfunction
 " maps <, ", / and \, sets 'omnifunc'
 function! s:ICInit()
     " leave fast if we don't need to do anything for the buffer
-    if &l:omnifunc ==# 'ICComplete'
-        return
-    endif
-    if index(['c', 'cpp', 'cpp', 'cpp'], &l:filetype) == -1
+    if !s:ICIsBufferSupported() || &l:omnifunc ==# 'ICComplete'
         return
     endif
 
@@ -89,6 +86,16 @@ function! s:ICInit()
 
     " set our omnifunc
     setlocal omnifunc=ICComplete
+endfunction
+
+" checks whether the plugin should be active in current buffer
+function s:ICIsBufferSupported()
+    for l:component in split(&l:filetype, '\.')
+        if index(['c', 'cpp'], l:component) == -1
+            return 1
+        endif
+    endfor
+    return 0
 endfunction
 
 " checks whether we need to do completion after <, ", / or \ and starts it when
