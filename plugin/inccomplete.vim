@@ -91,7 +91,7 @@ endfunction
 " checks whether the plugin should be active in current buffer
 function s:ICIsBufferSupported()
     for l:component in split(&l:filetype, '\.')
-        if index(['c', 'cpp'], l:component) == -1
+        if index(['c', 'cpp'], l:component) != -1
             return 1
         endif
     endfor
