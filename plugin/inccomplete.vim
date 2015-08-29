@@ -1,6 +1,6 @@
 " Name:            inccomplete
 " Author:          xaizek  <xaizek@openmailbox.org>
-" Version:         1.6.40
+" Version:         1.7.40
 " License:         Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -267,7 +267,12 @@ function! s:ICFilterIncLst(user, inclst, base)
 
     " handle multicomponent paths (e.g. "a/...", <boost/...>)
     if l:pos >= 0
-        let l:inclst = s:ICFilter(a:user, l:inclst, a:base, s:ICGetDir())
+        let l:lst = s:ICFilter(a:user, l:inclst, a:base, s:ICGetDir())
+        if exists('b:inccomplete_root')
+            let l:lst += s:ICFilter(a:user, l:inclst, a:base,
+                                  \ b:inccomplete_root)
+        endif
+        let l:inclst = l:lst
     endif
 
     return l:inclst

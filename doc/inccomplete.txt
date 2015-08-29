@@ -1,4 +1,4 @@
-*inccomplete.txt*	For Vim version 7.3.  Last change: 2013 Nov 24
+*inccomplete.txt*	For Vim version 7.3.  Last change: 2015 Aug 29
 
 
 		  inccomplete plugin documentation    by xaizek
@@ -113,6 +113,14 @@ append a slash to directory names     		*inccomplete-appendslash*
 If value of this option evaluates to true, the plugin will append a slash
 to directory name completion items. Otherwise slashes will be added in the
 menu only.
+
+root for local includes				*inccomplete-root*
+						*b:inccomplete_root*
+						 type: string
+						 default: not set
+
+When this option if set for current buffer, the plugin uses it as base
+directory for local completion.
 
 ==============================================================================
 3. ToDo						*inccomplete-todo*
