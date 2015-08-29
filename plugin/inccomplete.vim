@@ -1,6 +1,6 @@
 " Name:            inccomplete
 " Author:          xaizek  <xaizek@openmailbox.org>
-" Version:         1.6.36
+" Version:         1.6.40
 " License:         Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -265,34 +265,48 @@ function! s:ICFilterIncLst(user, inclst, base)
         call map(l:inclst, '[substitute(v:val[0], "/", "\\\\", "g"), v:val[1]]')
     endif
 
+    " handle multicomponent paths (e.g. "a/...", <boost/...>)
     if l:pos >= 0
-        " filter by subdirectory name
-        let l:dirend0 = a:base[:l:pos]
-        if a:user
-            let l:dirend1 = fnamemodify(s:ICGetDir().'/'.l:dirend0, ':p')
-        else
-            let l:dirend1 = l:dirend0
-        endif
-        if l:sl1 == '/'
-            let l:dirend2 = substitute(l:dirend1, "\\\\", "/", "g")
-        else
-            let l:dirend2 = escape(l:dirend1, '\')
-        endif
-        if a:user
-            call filter(l:inclst, 'v:val[0] =~ "^".l:dirend2."[\\/]*$"')
-        else
-            call filter(l:inclst, 'v:val[0] =~ "'.l:sl1.'".l:dirend2."$"')
-        endif
+        let l:inclst = s:ICFilter(a:user, l:inclst, a:base, s:ICGetDir())
+    endif
 
-        " move end of each path to the beginning of filename
-        let l:cutidx = - (l:pos + 2)
-        if !empty(l:inclst) && l:inclst[0][0][l:cutidx + 1:] != l:dirend0
-                    \ && a:user
-            let l:path = s:ICGetDir()
-            call map(l:inclst, '[l:path, l:dirend0.v:val[1]]')
-        else
-            call map(l:inclst, '[v:val[0][:l:cutidx], l:dirend0.v:val[1]]')
-        endif
+    return l:inclst
+endfunction
+
+" filters multicomponent paths
+function! s:ICFilter(user, inclst, base, dir)
+    let [l:pos, l:sl1, l:sl2] = s:ICParsePath(a:base)
+
+    let l:inclst = copy(a:inclst)
+
+    " filter by subdirectory name
+    let l:dirend0 = a:base[:l:pos]
+    if a:user
+        let l:dirend1 = fnamemodify(a:dir.'/'.l:dirend0, ':p')
+    else
+        let l:dirend1 = l:dirend0
+    endif
+    if l:sl1 == '/'
+        let l:dirend2 = substitute(l:dirend1, "\\\\", "/", "g")
+    else
+        let l:dirend2 = escape(l:dirend1, '\')
+    endif
+    if a:user
+        call filter(
+                \ l:inclst,
+                \ 'v:val[0]."/".v:val[1] =~ "^".l:dirend2."\\($\\|[\\/]*.*\\)"')
+    else
+        call filter(l:inclst, 'v:val[0] =~ "'.l:sl1.'".l:dirend2."\\?$"')
+    endif
+
+    " move end of each path to the beginning of filename
+    let l:cutidx = - (l:pos + 2)
+    if !empty(l:inclst) && l:inclst[0][0][l:cutidx + 1:] != l:dirend0
+                      \ && a:user
+        let l:path = s:ICGetDir()
+        call map(l:inclst, '[l:path, l:dirend0.v:val[1]]')
+    else
+        call map(l:inclst, '[v:val[0][:l:cutidx], l:dirend0.v:val[1]]')
     endif
 
     return l:inclst
@@ -304,7 +318,12 @@ endfunction
 function! s:ICGetList(user, base)
     if a:user
         let l:dir = s:ICGetDir()
-        return s:ICFindIncludes(1, [l:dir] + s:ICGetSubDirs([l:dir], a:base))
+        let l:dirs = [l:dir]
+        if exists('b:inccomplete_root')
+            let l:dirs = [b:inccomplete_root] + l:dirs
+        endif
+        let l:dirs += s:ICGetSubDirs(l:dirs, a:base)
+        return s:ICFindIncludes(1, l:dirs)
     endif
 
     " prepare list of directories
@@ -391,6 +410,9 @@ function! s:ICFindIncludes(user, pathlst)
 
     " prepare a:pathlst by forming regexps
     for l:i in range(len(a:pathlst))
+        if a:pathlst[i][-1:] == '/'
+            let a:pathlst[i] = a:pathlst[i][:-2]
+        endif
         let g:inccomplete_cache[a:pathlst[i]] = []
         let l:tmp = substitute(a:pathlst[i], '\', '/', 'g')
         let a:pathlst[i] = [a:pathlst[i], '^'.escape(l:tmp, '.')]
@@ -400,8 +422,12 @@ function! s:ICFindIncludes(user, pathlst)
     let l:result = []
     for l:file in l:foundlst
         let l:file = substitute(l:file, '\', '/', 'g')
+        if l:file[-1:] == '/'
+            let l:file = l:file[:-2]
+        endif
         " find appropriate parent path ("." at the end forbids exact match)
-        let l:pathlst = filter(copy(a:pathlst), 'l:file =~ v:val[1]."."')
+        let l:pathlst = filter(copy(a:pathlst),
+                             \ 'fnamemodify(l:file, ":h") == v:val[0]')
         if empty(l:pathlst)
             continue
         endif
