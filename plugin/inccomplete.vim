@@ -415,12 +415,13 @@ function! s:ICFindIncludes(user, pathlst)
 
     " prepare a:pathlst by forming regexps
     for l:i in range(len(a:pathlst))
-        if a:pathlst[i][-1:] == '/'
-            let a:pathlst[i] = a:pathlst[i][:-2]
+        let l:path = a:pathlst[i]
+        if l:path[-1:] == '/'
+            let l:path = l:path[:-2]
         endif
-        let g:inccomplete_cache[a:pathlst[i]] = []
-        let l:tmp = substitute(a:pathlst[i], '\', '/', 'g')
-        let a:pathlst[i] = [a:pathlst[i], '^'.escape(l:tmp, '.')]
+        let g:inccomplete_cache[l:path] = []
+        let l:tmp = substitute(l:path, '\', '/', 'g')
+        let a:pathlst[i] = [l:path, '^'.escape(l:tmp, '.')]
     endfor
 
     " process the results of find
