@@ -1,6 +1,6 @@
 " Name:            inccomplete
-" Author:          xaizek  <xaizek@openmailbox.org>
-" Version:         1.7.40
+" Author:          xaizek <xaizek@openmailbox.org>
+" Version:         1.7.41
 " License:         Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -416,7 +416,7 @@ function! s:ICFindIncludes(user, pathlst)
     " prepare a:pathlst by forming regexps
     for l:i in range(len(a:pathlst))
         let l:path = a:pathlst[i]
-        if l:path[-1:] == '/'
+        if l:path != '/' && l:path[-1:] == '/'
             let l:path = l:path[:-2]
         endif
         let g:inccomplete_cache[l:path] = []
