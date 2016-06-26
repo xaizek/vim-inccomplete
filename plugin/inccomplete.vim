@@ -1,6 +1,6 @@
 " Name:            inccomplete
 " Author:          xaizek <xaizek@openmailbox.org>
-" Version:         1.7.41
+" Version:         1.7.42
 " License:         Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -297,9 +297,11 @@ function! s:ICFilter(user, inclst, base, dir)
         let l:dirend2 = escape(l:dirend1, '\')
     endif
     if a:user
+        " filter items by full path, leave only exact matches or direct children
+        " (match full pattern or have at most one more trailing path entry)
         call filter(
-                \ l:inclst,
-                \ 'v:val[0]."/".v:val[1] =~ "^".l:dirend2."\\($\\|[\\/]*.*\\)"')
+          \ l:inclst,
+          \ 'v:val[0]."/".v:val[1] =~ "^".l:dirend2."\\($\\|[\\/]*[^\\/]*$\\)"')
     else
         call filter(l:inclst, 'v:val[0] =~ "'.l:sl1.'".l:dirend2."\\?$"')
     endif
