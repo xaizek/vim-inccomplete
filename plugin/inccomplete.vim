@@ -1,6 +1,6 @@
 " Name:            inccomplete
 " Author:          xaizek <xaizek@openmailbox.org>
-" Version:         1.7.42
+" Version:         1.7.43
 " License:         Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -499,7 +499,7 @@ endfunction
 " returns list of three elements: [name_pos, slash_for_regexps, ordinary_slash]
 function! s:ICParsePath(path)
     let l:iswindows = has('win16') || has('win32') || has('win64') ||
-                    \ has('win95') || has('win32unix')
+                    \ has('win95')
 
     " determine type of slash
     let l:path = a:path
