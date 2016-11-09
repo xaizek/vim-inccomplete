@@ -1,6 +1,6 @@
 " Name:            inccomplete
 " Author:          xaizek <xaizek@openmailbox.org>
-" Version:         1.7.43
+" Version:         1.7.44
 " License:         Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -484,6 +484,9 @@ function! s:ICGetSubDirs(pathlst, base)
     " search
     let l:dirend = a:base[:l:pos]
     let l:pathlst = join(a:pathlst, ',')
+    " escape spaces in paths (seems to be needed on Windows, does not harm on
+    " other systems)
+    let l:pathlst = substitute(l:pathlst, ' ', '\\ ', 'g')
     let l:subdirs = finddir(l:dirend, l:pathlst, -1)
 
     " path expanding
