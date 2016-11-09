@@ -1,6 +1,6 @@
 " Name:            inccomplete
 " Author:          xaizek <xaizek@openmailbox.org>
-" Version:         1.7.44
+" Version:         1.7.45
 " License:         Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -109,7 +109,12 @@ function! ICCompleteInc(bracket)
     endif
 
     if a:bracket == '/' || a:bracket == '\'
-        if getline('.') =~ '^\s*#\s*include\s*["<][^">]*$'
+        " complete when there are no closing character or we're right before
+        " it
+        let l:curline = getline('.')
+        if l:curline =~ '^\s*#\s*include\s*["<][^">]*$' ||
+         \ (l:curline =~ '^\s*#\s*include\s*["<][^">]*[">]$' &&
+          \ (l:curline[col('.') - 1] == '"' || l:curline[col('.') - 1 ] == '>'))
             return a:bracket.l:keycomp
         endif
     endif
