@@ -1,6 +1,6 @@
 " Name:            inccomplete
 " Author:          xaizek <xaizek@openmailbox.org>
-" Version:         1.7.45
+" Version:         1.7.46
 " License:         Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -64,6 +64,9 @@ function! s:ICInit()
     " remap < and "
     inoremap <expr> <buffer> < ICCompleteInc('<')
     inoremap <expr> <buffer> " ICCompleteInc('"')
+    if g:inccomplete_addclosebracket == 'always'
+        inoremap <expr> <buffer> <bs> ICBackspace()
+    endif
     if g:inccomplete_showdirs
         inoremap <expr> <buffer> / ICCompleteInc('/')
         inoremap <expr> <buffer> \ ICCompleteInc('\')
@@ -134,6 +137,16 @@ function! ICCompleteInc(bracket)
         " put bracket and start completion
         return a:bracket.l:keycomp
     endif
+endfunction
+
+" cleans up possibly automatically added closing bracket
+function ICBackspace()
+    let l:line = getline('.')
+    if l:line =~ '^\s*#\s*include\s*\%(<>\|""\)' &&
+     \ l:line[:col('.') - 2] =~ '^\s*#\s*include\s*\%(<\|"\)$'
+        return "\<right>\<bs>\<bs>"
+    endif
+    return "\<bs>"
 endfunction
 
 " this is the 'omnifunc'
