@@ -98,7 +98,7 @@ function s:ICIsBufferSupported()
 endfunction
 
 " checks whether we need to do completion after <, ", / or \ and starts it when
-" we do.
+" we do
 function! ICCompleteInc(bracket)
     let l:keycomp = "\<c-x>\<c-o>"
     if g:inccomplete_autoselect != 2
