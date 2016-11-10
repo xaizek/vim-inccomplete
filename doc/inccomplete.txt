@@ -1,4 +1,4 @@
-*inccomplete.txt*	For Vim version 7.3.  Last change: 2015 Dec 30
+*inccomplete.txt*	For Vim version 7.3.  Last change: 2016 Nov 10
 
 
 		  inccomplete plugin documentation    by xaizek
@@ -23,14 +23,16 @@ And maybe with some others that haven't been tested.  clang_complete
 dependency is optional, though even if you don't use it you still can set its
 options so that they affect this plugin.
 
-It has been reported to work with neocomplete plugin and for neovim+deoplete
-provided that:
+It has been reported to work with neocomplete plugin as is and for
+neovim+deoplete these conditions might need to be met:
  * g:inccomplete_showdirs is set
  * g:deoplete#omni#input_patterns.cpp is set to >
    ['[^. *\t]\.\w*', '[^. *\t]\::\w*', '[^. *\t]\->\w*', '[<"].*/']
 <   I.e., add the last item to trigger omnifunc on `<../` and `"../` patterns.
 (see
-https://github.com/Rip-Rip/clang_complete/issues/466#issuecomment-167975065).
+https://github.com/Rip-Rip/clang_complete/issues/466#issuecomment-167975065
+and
+https://github.com/xaizek/vim-inccomplete/issues/5#issuecomment-259419371).
 
 It can complete both "" and <> forms of #include.
 
