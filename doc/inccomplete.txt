@@ -1,20 +1,20 @@
-*inccomplete.txt*	For Vim version 7.3.  Last change: 2016 Nov 10
+*inccomplete.txt*       For Vim version 7.3.  Last change: 2016 Nov 10
 
 
-		  inccomplete plugin documentation    by xaizek
+                  inccomplete plugin documentation    by xaizek
 
 
-inccomplete plugin					*inccomplete*
+inccomplete plugin                                      *inccomplete*
 
-1. Description			|inccomplete-description|
-2. Configuration		|inccomplete-configuration|
-3. ToDo		       	 	|inccomplete-todo|
+1. Description                  |inccomplete-description|
+2. Configuration                |inccomplete-configuration|
+3. ToDo                         |inccomplete-todo|
 
-Author:  xaizek <xaizek@posteo.net>       		*inccomplete-author*
+Author:  xaizek <xaizek@posteo.net>                     *inccomplete-author*
 License: Same terms as Vim itself (see |license|)
 
 ==============================================================================
-1. Description 					*inccomplete-description*
+1. Description                                  *inccomplete-description*
 
 This is a completion plugin for C/C++/ObjC/ObjC++ preprocessors include
 directive.  It can be used along with clang_complete plugin
@@ -67,10 +67,10 @@ a dot are ignored.  Closing bracket is never added to directory completion
 items.
 
 ==============================================================================
-2. Configuration				*inccomplete-configuration*
+2. Configuration                                *inccomplete-configuration*
 
-Whether to autoselect the first entry		*inccomplete-autoselect*
-						*g:inccomplete_autoselect*
+Whether to autoselect the first entry           *inccomplete-autoselect*
+                                                *g:inccomplete_autoselect*
 If equal to 0, nothing is selected.
 If equal to 1, automatically select the first entry in the popup menu, but
 without inserting it into the code.
@@ -78,10 +78,10 @@ If equal to 2, automatically select the first entry in the popup menu, and
 insert it into the code.
 Default: 1
 
-command to run GNU find program			*inccomplete-findcmd*
-						*g:inccomplete_findcmd*
+command to run GNU find program                 *inccomplete-findcmd*
+                                                *g:inccomplete_findcmd*
                                                  type: string
-						 default: ""
+                                                 default: ""
 
 When it's empty, plugin will use VimL functions to search files, otherwise it
 will use given external program.
@@ -94,49 +94,49 @@ Note: On Windows you need to have Cygwin installed and to set full path to
       -maxdepth 1 -type f -type d -or -L
 <
 
-how to add close bracket			*inccomplete-addclosebracket*
-						*g:inccomplete_addclosebracket*
+how to add close bracket                        *inccomplete-addclosebracket*
+                                                *g:inccomplete_addclosebracket*
                                                  type: string
-						 default: "always"
+                                                 default: "always"
 
 When this option equals "always" close bracket will be added right after open
 bracket was pressed. Otherwise it will be added after completion is over.
 
-how to sort completion list			*inccomplete-sort*
-						*g:inccomplete_sort*
-						 type: string
-						 default: ""
+how to sort completion list                     *inccomplete-sort*
+                                                *g:inccomplete_sort*
+                                                 type: string
+                                                 default: ""
 
 When this option equals "ignorecase" the case of letters of filenames will be
 ignored.
 
-add directories to completion list     		*inccomplete-showdirs*
-						*g:inccomplete_showdirs*
-						 type: bool
-						 default: false
+add directories to completion list              *inccomplete-showdirs*
+                                                *g:inccomplete_showdirs*
+                                                 type: bool
+                                                 default: false
 
 If value of this option evaluates to true, plugin will search for
 directories and add it to completion list.
 
-append a slash to directory names     		*inccomplete-appendslash*
-						*g:inccomplete_appendslash*
-						 type: bool
-						 default: false
+append a slash to directory names               *inccomplete-appendslash*
+                                                *g:inccomplete_appendslash*
+                                                 type: bool
+                                                 default: false
 
 If value of this option evaluates to true, the plugin will append a slash
 to directory name completion items. Otherwise slashes will be added in the
 menu only.
 
-root for local includes				*inccomplete-root*
-						*b:inccomplete_root*
-						 type: string
-						 default: not set
+root for local includes                         *inccomplete-root*
+                                                *b:inccomplete_root*
+                                                 type: string
+                                                 default: not set
 
 When this option if set for current buffer, the plugin uses it as base
 directory for local completion.
 
 ==============================================================================
-3. ToDo						*inccomplete-todo*
+3. ToDo                                         *inccomplete-todo*
 
 - Maybe 'path' option should be replaced with some global variable like
   g:inccomplete_incpath?
