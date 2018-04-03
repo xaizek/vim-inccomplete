@@ -1,6 +1,6 @@
 " Name:            inccomplete
 " Author:          xaizek <xaizek@posteo.net>
-" Version:         1.7.47
+" Version:         1.8.47
 " License:         Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -34,6 +34,10 @@ endif
 
 if !exists('g:inccomplete_appendslash')
     let g:inccomplete_appendslash = 0
+endif
+
+if !exists('g:inccomplete_localsources')
+    let g:inccomplete_localsources = [ 'relative-paths' ]
 endif
 
 " initialize inccomplete after all other plugins are loaded
@@ -272,11 +276,10 @@ function! s:ICFilterIncLst(user, inclst, base)
 
     " handle multicomponent paths (e.g. "a/...", <boost/...>)
     if l:pos >= 0
-        let l:lst = s:ICFilter(a:user, l:inclst, a:base, s:ICGetDir())
-        if exists('b:inccomplete_root')
-            let l:lst += s:ICFilter(a:user, l:inclst, a:base,
-                                  \ b:inccomplete_root)
-        endif
+        let l:lst = []
+        for l:dir in s:ICGetUserSources()
+            let l:lst += s:ICFilter(a:user, l:inclst, a:base, l:dir)
+        endfor
         let l:inclst = l:lst
     endif
 
@@ -338,17 +341,14 @@ endfunction
 " everywhere in path except '.'
 function! s:ICGetList(user, base)
     if a:user
-        let l:dir = s:ICGetDir()
-        let l:dirs = [l:dir]
-        if exists('b:inccomplete_root')
-            let l:dirs = [b:inccomplete_root] + l:dirs
-        endif
-        let l:dirs += s:ICGetSubDirs(l:dirs, a:base)
+        let l:dirs = s:ICGetUserSources()
+        let l:dirs = s:ICAddNoDupPaths(l:dirs, s:ICGetSubDirs(l:dirs, a:base))
         return s:ICFindIncludes(1, l:dirs)
     endif
 
     " prepare list of directories
-    let l:pathlst = s:ICAddNoDupPaths(split(&path, ','), s:ICGetClangIncludes())
+    let l:pathlst = s:ICAddNoDupPaths(split(&path, ','),
+                                    \ s:ICGetClangIncludes(2))
     let l:pathlst = s:ICAddNoDupPaths(l:pathlst,
                                     \ s:ICGetSubDirs(l:pathlst, a:base))
     call reverse(sort(l:pathlst))
@@ -368,6 +368,25 @@ function! s:ICGetList(user, base)
     endfor
 
     return l:result
+endfunction
+
+" returns list of paths to directories which should be searched for
+" ""-completion
+function! s:ICGetUserSources()
+    let l:dirs = []
+    if index(g:inccomplete_localsources, 'relative-paths') >= 0
+        let l:dirs += [s:ICGetDir()]
+    endif
+    if index(g:inccomplete_localsources, 'clang-buffer') >= 0
+        let l:dirs = s:ICAddNoDupPaths(l:dirs, s:ICGetClangIncludes(1))
+    endif
+    if index(g:inccomplete_localsources, 'clang-global') >= 0
+        let l:dirs = s:ICAddNoDupPaths(l:dirs, s:ICGetClangIncludes(0))
+    endif
+    if exists('b:inccomplete_root')
+        let l:dirs = s:ICAddNoDupPaths(l:dirs, [b:inccomplete_root])
+    endif
+    return l:dirs
 endfunction
 
 " gets directory of the current buffer
@@ -468,12 +487,16 @@ endfunction
 
 " retrieves include directories from b:clang_user_options and
 " g:clang_user_options
-function! s:ICGetClangIncludes()
+" possible values of which:
+"  - 0 -- only g:clang_user_options
+"  - 1 -- only b:clang_user_options
+"  - 2 -- both options
+function! s:ICGetClangIncludes(which)
     let l:opts = ''
-    if exists('b:clang_user_options')
+    if a:which != 0 && exists('b:clang_user_options')
         let l:opts .= b:clang_user_options.' '
     endif
-    if exists('g:clang_user_options')
+    if a:which != 1 && exists('g:clang_user_options')
         let l:opts .= g:clang_user_options.' '
     endif
     if empty(l:opts)

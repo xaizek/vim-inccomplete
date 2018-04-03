@@ -1,4 +1,4 @@
-*inccomplete.txt*       For Vim version 7.3.  Last change: 2016 Nov 10
+*inccomplete.txt*       For Vim version 7.3.  Last change: 2018 Apr 3
 
 
                   inccomplete plugin documentation    by xaizek
@@ -38,8 +38,9 @@ It can complete both "" and <> forms of #include.
 
 "" Completion~
 
-For "" it gets all header files in the current directory or any relative
-to it directory.
+By default gets all header files in the current directory or any directory
+relative to it.  Can be configured with |b:inccomplete_root| and
+|g:inccomplete_localsources|.
 
 <> Completion~
 
@@ -134,6 +135,17 @@ root for local includes                         *inccomplete-root*
 
 When this option if set for current buffer, the plugin uses it as base
 directory for local completion.
+
+list of sources for "" completion               *inccomplete-localsources*
+                                                *g:inccomplete_localsources*
+                                                 type: list
+                                                 default: [ 'relative-paths' ]
+
+Specifies what appears in "" completion.  List can include the following
+items:
+- 'relative-paths' to complete paths relative to location of current buffer
+- 'clang-buffer' to complete paths from '-I' keys in b:clang_user_options
+- 'clang-global' to complete paths from '-I' keys in g:clang_user_options
 
 ==============================================================================
 3. ToDo                                         *inccomplete-todo*
