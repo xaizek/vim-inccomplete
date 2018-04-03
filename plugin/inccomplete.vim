@@ -1,6 +1,6 @@
 " Name:            inccomplete
 " Author:          xaizek <xaizek@posteo.net>
-" Version:         1.7.46
+" Version:         1.7.47
 " License:         Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -292,7 +292,7 @@ function! s:ICFilter(user, inclst, base, dir)
     " filter by subdirectory name
     let l:dirend0 = a:base[:l:pos]
     if a:user
-        let l:dirend1 = fnamemodify(a:dir.'/'.l:dirend0, ':p')
+        let l:dirend1 = fnamemodify(s:ICChosp(a:dir).'/'.l:dirend0, ':p')
     else
         let l:dirend1 = l:dirend0
     endif
@@ -322,6 +322,15 @@ function! s:ICFilter(user, inclst, base, dir)
     endif
 
     return l:inclst
+endfunction
+
+" drops all trailing slashes from path
+function! s:ICChosp(path)
+    let l:path = a:path
+    while len(l:path) > 1 && (l:path[-1:] == '/' || l:path[-1:] == '\')
+        let l:path = l:path[:-2]
+    endwhile
+    return l:path
 endfunction
 
 " searches for files that can be included in path
