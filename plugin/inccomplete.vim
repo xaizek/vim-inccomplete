@@ -1,6 +1,6 @@
 " Name:            inccomplete
 " Author:          xaizek <xaizek@posteo.net>
-" Version:         1.7.45
+" Version:         1.7.46
 " License:         Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -476,7 +476,23 @@ function! s:ICGetClangIncludes()
     let l:lst = map(l:lst, 'v:val[2:]')
     let l:lst = map(l:lst, 'fnamemodify(v:val, ":p")')
     let l:lst = map(l:lst, 'substitute(v:val, "\\\\", "/", "g")')
-    return l:lst
+
+    " While transforming relative paths into absolute ones clang_complete adds
+    " escaping in the form of single or double quotes, try to get rid of them.
+    " Otherwise we end up with list of paths some of which don't exist.
+    let l:result = []
+    for l:item in l:lst
+        if l:item[0] == "'"
+            let l:last = strridx(l:item, "'")
+            let l:item = l:item[1 : l:last - 1] . l:item[l:last + 1:]
+        elseif l:item[0] == '"'
+            let l:last = strridx(l:item, '"')
+            let l:item = l:item[1 : l:last - 1] . l:item[l:last + 1:]
+        endif
+        let l:result += [l:item]
+    endfor
+
+    return l:result
 endfunction
 
 " searches for existing subdirectories
