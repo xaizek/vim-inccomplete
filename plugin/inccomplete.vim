@@ -1,6 +1,6 @@
 " Name:            inccomplete
 " Author:          xaizek <xaizek@posteo.net>
-" Version:         1.8.47
+" Version:         1.8.48
 " License:         Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -318,8 +318,10 @@ function! s:ICFilter(user, inclst, base, dir)
     let l:cutidx = - (l:pos + 2)
     if !empty(l:inclst) && l:inclst[0][0][l:cutidx + 1:] != l:dirend0
                       \ && a:user
-        let l:path = s:ICGetDir()
-        call map(l:inclst, '[l:path, l:dirend0.v:val[1]]')
+        let l:dir = s:ICGetDir()
+        let l:path = s:ICChosp(fnamemodify(l:dir.'/'.l:dirend0, ':p'))
+        call map(l:inclst, '[ v:val[0] == l:path ? l:dir : v:val[0][:l:cutidx],'
+                         \.'  l:dirend0.v:val[1] ]')
     else
         call map(l:inclst, '[v:val[0][:l:cutidx], l:dirend0.v:val[1]]')
     endif
