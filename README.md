@@ -11,8 +11,12 @@ directive.
 
 ### Sources of completion ###
 
-Sources for `""` completion are a combination of path relative to the directory
-of current file and a project root (can be specified on configuration).
+Sources for `""` completion are configured via `g:inccomplete_localsources` and
+can include:
+ - paths relative to the directory of current file
+ - `'-I'` keys from `g:clang_user_options`
+ - `'-I'` keys from `b:clang_user_options`
+ - paths relative to project root (if specified on configuration)
 
 Sources for `<>` completion are:
  - `'path'` option (on *nix it's set to `'/usr/include'` by default, but on
