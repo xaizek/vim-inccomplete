@@ -1,6 +1,6 @@
 " Name:            inccomplete
 " Author:          xaizek <xaizek@posteo.net>
-" Version:         1.8.49
+" Version:         1.8.50
 " License:         Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -245,12 +245,18 @@ function s:IgnoreCaseComparer(i1, i2)
     if a:i1['dir'] != a:i2['dir']
         return a:i1['dir'] ? -1 : 1
     endif
+    if a:i1['menu'] != a:i2['menu']
+        return a:i1['menu'] < a:i2['menu'] ? -1 : 1
+    endif
     return a:i1['abbr'] == a:i2['abbr'] ? 0 :
                 \ (a:i1['abbr'] > a:i2['abbr'] ? 1 : -1)
 endfunction
 function s:Comparer(i1, i2)
     if a:i1['dir'] != a:i2['dir']
         return a:i1['dir'] ? -1 : 1
+    endif
+    if a:i1['menu'] != a:i2['menu']
+        return a:i1['menu'] < a:i2['menu'] ? -1 : 1
     endif
     return a:i1['abbr'] ==# a:i2['abbr'] ? 0 :
                 \ (a:i1['abbr'] ># a:i2['abbr'] ? 1 : -1)
