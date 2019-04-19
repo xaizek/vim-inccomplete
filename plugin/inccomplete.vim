@@ -1,6 +1,6 @@
 " Name:            inccomplete
 " Author:          xaizek <xaizek@posteo.net>
-" Version:         1.8.48
+" Version:         1.8.49
 " License:         Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -196,7 +196,8 @@ function! ICComplete(findstart, base)
                 continue
             endif
 
-            if isdirectory(l:increc[0].'/'.l:increc[1])
+            let l:isdir = isdirectory(l:increc[0].'/'.l:increc[1])
+            if l:isdir
                 let l:slashidx = strridx(l:increc[1], l:sl2)
                 if l:increc[1][l:slashidx + 1] == '.'
                     continue
@@ -209,11 +210,13 @@ function! ICComplete(findstart, base)
                 let l:slash = ''
             endif
 
+            " XXX: set 'kind' to 'd'/'f' to indicate directory/file?  
             let l:item = {
                         \ 'word': l:increc[1].l:strend,
                         \ 'abbr': l:increc[1].l:slash,
                         \ 'menu': s:ICModifyPath(l:increc[0]),
-                        \ 'dup': 0
+                        \ 'dup': 0,
+                        \ 'dir': l:isdir
                         \}
             call add(l:comlst, l:item)
         endfor
@@ -239,10 +242,16 @@ function s:SortList(lst)
     endif
 endfunction
 function s:IgnoreCaseComparer(i1, i2)
+    if a:i1['dir'] != a:i2['dir']
+        return a:i1['dir'] ? -1 : 1
+    endif
     return a:i1['abbr'] == a:i2['abbr'] ? 0 :
                 \ (a:i1['abbr'] > a:i2['abbr'] ? 1 : -1)
 endfunction
 function s:Comparer(i1, i2)
+    if a:i1['dir'] != a:i2['dir']
+        return a:i1['dir'] ? -1 : 1
+    endif
     return a:i1['abbr'] ==# a:i2['abbr'] ? 0 :
                 \ (a:i1['abbr'] ># a:i2['abbr'] ? 1 : -1)
 endfunction
