@@ -1,6 +1,6 @@
 " Name:            inccomplete
 " Author:          xaizek <xaizek@posteo.net>
-" Version:         1.8.50
+" Version:         1.8.51
 " License:         Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -428,14 +428,15 @@ function! s:ICFindIncludes(user, pathlst)
     if empty(a:pathlst)
         return []
     endif
+    let l:exts = '\('.escape(join(s:ICGetExtensions(a:user), '\|'), '.').'\)'
     if !a:user
         if empty(g:inccomplete_findcmd)
-            let l:regex = '.*[/\\][-_a-z0-9]\+\(\.hpp\|\.h\)\?$'
+            let l:regex = '.*[/\\][-_a-z0-9]\+'.l:exts.'$'
         else
-            let l:regex = '.*[/\\][-_a-z0-9]+\(\.hpp\|\.h\)?$'
+            let l:regex = '.*[/\\][-_a-z0-9]+'.l:exts.'$'
         endif
     else
-        let l:regex = '.*\(\.hpp\|\.h\)$'
+        let l:regex = '.*'.l:exts.'$'
     endif
 
     " execute find
@@ -500,6 +501,19 @@ function! s:ICFindIncludes(user, pathlst)
         call add(g:inccomplete_cache[l:incpath], l:left)
     endfor
     return l:result
+endfunction
+
+" retrieves set of extensions acceptable for completion
+function s:ICGetExtensions(user)
+    if s:ICIsCxxBuffer()
+        return a:user ? ['.hpp', '.h'] : ['.hpp', '.h', '']
+    endif
+    return ['.h']
+endfunction
+
+" checks whether current buffer is of C++ kind
+function s:ICIsCxxBuffer()
+    return index(split(&l:filetype, '\.'), 'cpp') != -1
 endfunction
 
 " retrieves include directories from b:clang_user_options and
