@@ -16,7 +16,10 @@ can include:
  - paths relative to the directory of current file
  - `'-I'` keys from `g:clang_user_options`
  - `'-I'` keys from `b:clang_user_options`
- - paths relative to project root (if specified on configuration)
+
+Additional sources for `""` completion can be specified via
+`b:inccomplete_roots` (this is a list equivalent of older `b:inccomplete_root`
+string option).
 
 Sources for `<>` completion are:
  - `'path'` option (on *nix it's set to `'/usr/include'` by default, but on

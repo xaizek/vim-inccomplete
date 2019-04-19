@@ -1,4 +1,4 @@
-*inccomplete.txt*       For Vim version 7.3.  Last change: 2018 Apr 3
+*inccomplete.txt*       For Vim version 7.3.  Last change: 2019 Apr 19
 
 
                   inccomplete plugin documentation    by xaizek
@@ -18,7 +18,7 @@ License: Same terms as Vim itself (see |license|)
 
 This is a completion plugin for C/C++/ObjC/ObjC++ preprocessors include
 directive.  It can be used along with clang_complete plugin
-(http://www.vim.org/scripts/script.php?script_id=3302).
+(https://www.vim.org/scripts/script.php?script_id=3302).
 And maybe with some others that haven't been tested.  clang_complete
 dependency is optional, though even if you don't use it you still can set its
 options so that they affect this plugin.
@@ -128,12 +128,21 @@ If value of this option evaluates to true, the plugin will append a slash
 to directory name completion items. Otherwise slashes will be added in the
 menu only.
 
+extra sources for local includes                *inccomplete-roots*
+                                                *b:inccomplete_roots*
+                                                 type: list
+                                                 default: []
+
+If this option is set for current buffer, the plugin uses paths specified via
+it as additional directory to search for local completion.
+
 root for local includes                         *inccomplete-root*
                                                 *b:inccomplete_root*
                                                  type: string
                                                  default: not set
 
-When this option if set for current buffer, the plugin uses it as base
+Use |b:inccomplete-roots| instead.
+If this option is set for current buffer, the plugin uses it as base
 directory for local completion.
 
 list of sources for "" completion               *inccomplete-localsources*

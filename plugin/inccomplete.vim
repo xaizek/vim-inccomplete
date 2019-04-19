@@ -1,6 +1,6 @@
 " Name:            inccomplete
 " Author:          xaizek <xaizek@posteo.net>
-" Version:         1.8.51
+" Version:         1.8.52
 " License:         Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -403,6 +403,11 @@ function! s:ICGetUserSources()
     if exists('b:inccomplete_root')
         let l:dirs = s:ICAddNoDupPaths(l:dirs, [b:inccomplete_root])
     endif
+
+    if exists('b:inccomplete_roots')
+        let l:dirs = s:ICAddNoDupPaths(l:dirs, b:inccomplete_roots)
+    endif
+
     return l:dirs
 endfunction
 
