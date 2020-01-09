@@ -1,6 +1,6 @@
 " Name:            inccomplete
 " Author:          xaizek <xaizek@posteo.net>
-" Version:         1.8.52
+" Version:         1.8.53
 " License:         Same terms as Vim itself (see :help license)
 "
 " See :help inccomplete for documentation.
@@ -391,15 +391,19 @@ endfunction
 " ""-completion
 function! s:ICGetUserSources()
     let l:dirs = []
-    if index(g:inccomplete_localsources, 'relative-paths') >= 0
-        let l:dirs += [s:ICGetDir()]
-    endif
-    if index(g:inccomplete_localsources, 'clang-buffer') >= 0
-        let l:dirs = s:ICAddNoDupPaths(l:dirs, s:ICGetClangIncludes(1))
-    endif
-    if index(g:inccomplete_localsources, 'clang-global') >= 0
-        let l:dirs = s:ICAddNoDupPaths(l:dirs, s:ICGetClangIncludes(0))
-    endif
+
+    for l:source in g:inccomplete_localsources
+        if l:source ==# 'relative-paths'
+            let l:dirs += [s:ICGetDir()]
+        elseif l:source ==# 'clang-buffer'
+            let l:dirs = s:ICAddNoDupPaths(l:dirs, s:ICGetClangIncludes(1))
+        elseif l:source ==# 'clang-global'
+            let l:dirs = s:ICAddNoDupPaths(l:dirs, s:ICGetClangIncludes(0))
+        elseif l:source ~= '/' && isdirectory(l:source)
+            let l:dirs += [ l:source ]
+        endif
+    endfor
+
     if exists('b:inccomplete_root')
         let l:dirs = s:ICAddNoDupPaths(l:dirs, [b:inccomplete_root])
     endif

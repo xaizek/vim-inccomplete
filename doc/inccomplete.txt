@@ -1,4 +1,4 @@
-*inccomplete.txt*       For Vim version 7.3.  Last change: 2019 Apr 19
+*inccomplete.txt*       For Vim version 7.3.  Last change: 2020 Jan 9
 
 
                   inccomplete plugin documentation    by xaizek
@@ -155,6 +155,8 @@ items:
 - 'relative-paths' to complete paths relative to location of current buffer
 - 'clang-buffer' to complete paths from '-I' keys in b:clang_user_options
 - 'clang-global' to complete paths from '-I' keys in g:clang_user_options
+- paths to directories to complete from (the path needs to include slash
+  somewhere and be an existing directory)
 
 ==============================================================================
 3. ToDo                                         *inccomplete-todo*
@@ -165,5 +167,6 @@ items:
   buffer instead of assuming that working directory is correct?
 - Add optional caching for local includes (ones in the double quotes).
 - Maybe filter out includes that already present in the buffer.
+- Can we follow symbolic links on completion?
 
  vim:tw=78:ts=8:ft=help:norl:
